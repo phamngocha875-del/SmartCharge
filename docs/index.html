@@ -11,7 +11,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
+            -webkit-tap-highlight-color: transparent; /* Disable tap highlight on mobile */
         }
         .screen {
             animation: fadeIn 0.3s ease-in-out;
@@ -48,19 +48,60 @@
             cursor: pointer;
             transition: color 0.2s;
         }
+        /* Custom styles for range slider */
+        .range-slider {
+            position: relative;
+            height: 40px;
+        }
+        .range-slider input[type=range] {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            pointer-events: none;
+            -webkit-appearance: none;
+            background: transparent;
+            top: 18px;
+        }
+        .range-slider input[type=range]::-webkit-slider-thumb {
+            pointer-events: all;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #16a34a;
+            cursor: pointer;
+            -webkit-appearance: none;
+            border: 4px solid white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        .slider-track {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: #e5e7eb;
+            top: 18px;
+            border-radius: 2px;
+        }
+        #slider-range {
+            position: absolute;
+            height: 4px;
+            background: #16a34a;
+            top: 18px;
+            border-radius: 2px;
+        }
     </style>
 </head>
 <body class="bg-gray-900 flex items-center justify-center min-h-screen">
 
+    <!-- App Frame -->
     <div class="w-full max-w-sm h-[800px] max-h-[90vh] bg-gray-50 rounded-3xl shadow-2xl overflow-hidden relative flex flex-col">
 
-        <!-- ===== Main Content Area ===== -->
+        <!-- Main Content Area -->
         <main class="flex-1 overflow-y-auto no-scrollbar">
             <!-- All screens will be rendered here by JavaScript -->
         </main>
 
-        <!-- ===== Bottom Navigation ===== -->
-        <nav id="bottom-nav" class="bg-white border-t border-gray-200 grid grid-cols-4 gap-2 px-4 py-2">
+        <!-- Bottom Navigation -->
+        <nav id="bottom-nav" class="bg-white border-t border-gray-200 grid grid-cols-5 gap-1 px-2 py-2">
             <button id="nav-home" class="flex flex-col items-center justify-center text-green-600 font-medium text-xs py-1 rounded-lg" onclick="renderHomeScreen()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 <span>Trang chủ</span>
@@ -68,6 +109,10 @@
             <button id="nav-history" class="flex flex-col items-center justify-center text-gray-500 hover:text-green-600 font-medium text-xs py-1 rounded-lg" onclick="renderHistoryScreen()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10"/></svg>
                 <span>Lịch sử</span>
+            </button>
+            <button id="nav-chatbot" class="flex flex-col items-center justify-center text-gray-500 hover:text-green-600 font-medium text-xs py-1 rounded-lg" onclick="renderChatbotScreen()">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span>Hỏi đáp</span>
             </button>
             <button id="nav-wallet" class="flex flex-col items-center justify-center text-gray-500 hover:text-green-600 font-medium text-xs py-1 rounded-lg" onclick="renderWalletScreen()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
@@ -86,10 +131,51 @@
 
         // --- MOCK DATA ---
         const mockStations = {
-            "st_cl": { name: "Charge+ Chùa Láng", time: 30, cost: 65000, rating: 4.5, address: "120 Chùa Láng, Đống Đa", distance: "500 m", travelTime: "2 phút", type: "cheapest", amenities: [{type:'cafe', name: 'Aha Cafe'}, {type:'food', name: 'Bún chả Sinh Từ'}] },
-            "st_nct": { name: "EBOOST Vincom NCT", time: 25, cost: 75000, rating: 4.8, address: "54A Nguyễn Chí Thanh, Đống Đa", distance: "1.5 km", travelTime: "5 phút", type: "recommended", amenities: [{type:'food', name: 'Kichi-Kichi'}, {type:'entertainment', name: 'CGV Cinema'}] },
-            "st_lotte": { name: "EV One Lotte Center", time: 35, cost: 85000, rating: 4.7, address: "54 Liễu Giai, Ba Đình", distance: "2.5 km", travelTime: "8 phút", type: "none", amenities: [{type:'hotel', name: 'Lotte Hotel'}, {type:'food', name: 'Top of Hanoi'}] },
-            "st_jw": { name: "Porsche Charging JW Marriott", time: 20, cost: 150000, rating: 4.9, address: "8 Đỗ Đức Dục, Nam Từ Liêm", distance: "4.0 km", travelTime: "12 phút", type: "fastest", amenities: [{type:'hotel', name: 'JW Marriott'}, {type:'cafe', name: 'The Lounge'}] },
+            "st_cl": { 
+                name: "Charge+ Chùa Láng", time: 30, unitPrice: 3117, rating: 4.5, address: "120 Chùa Láng, Đống Đa", distance: "500 m", travelTime: "2 phút", type: "cheapest", 
+                availability: { total: 4, free: 2 }, 
+                chargers: [
+                    { id: 'CL-DC-01', type: 'DC', power: 60, connector: 'CCS2', status: 'available' },
+                    { id: 'CL-DC-02', type: 'DC', power: 60, connector: 'CCS2', status: 'busy' },
+                    { id: 'CL-AC-01', type: 'AC', power: 22, connector: 'Type 2', status: 'available' },
+                    { id: 'CL-AC-02', type: 'AC', power: 22, connector: 'Type 2', status: 'available' }
+                ],
+                auxiliaryServices: ['wifi', 'wc'], 
+                amenities: [{type:'cafe', name: 'Aha Cafe', travelTime: '2 phút đi bộ', open: '7:00 - 23:00', services: 'Đồ uống, Bánh ngọt'}, {type:'food', name: 'Bún chả Sinh Từ', travelTime: '3 phút đi bộ', open: '9:00 - 22:00', services: 'Bún chả, Nem'}] 
+            },
+            "st_nct": { 
+                name: "EBOOST Vincom NCT", time: 25, unitPrice: 3550, rating: 4.8, address: "54A Nguyễn Chí Thanh, Đống Đa", distance: "1.5 km", travelTime: "5 phút", type: "recommended", 
+                availability: { total: 8, free: 7 }, 
+                chargers: [
+                    { id: 'NCT-DC-01', type: 'DC', power: 120, connector: 'CCS2', status: 'available' },
+                    { id: 'NCT-DC-02', type: 'DC', power: 120, connector: 'CCS2', status: 'available' },
+                    { id: 'NCT-DC-03', type: 'DC', power: 60, connector: 'CCS2', status: 'busy' },
+                    { id: 'NCT-AC-01', type: 'AC', power: 22, connector: 'Type 2', status: 'available' }
+                ],
+                auxiliaryServices: ['wc'], 
+                amenities: [{type:'food', name: 'Kichi-Kichi', travelTime: 'Trong TTTM', open: '10:00 - 22:00', services: 'Lẩu băng chuyền'}, {type:'entertainment', name: 'CGV Cinema', travelTime: 'Trong TTTM', open: '9:00 - 24:00', services: 'Chiếu phim'}] 
+            },
+            "st_lotte": { 
+                name: "EV One Lotte Center", time: 35, unitPrice: 3858, rating: 4.7, address: "54 Liễu Giai, Ba Đình", distance: "2.5 km", travelTime: "8 phút", type: "none", 
+                availability: { total: 6, free: 1 }, 
+                chargers: [
+                    { id: 'LT-DC-01', type: 'DC', power: 150, connector: 'CCS2', status: 'busy' },
+                    { id: 'LT-DC-02', type: 'DC', power: 150, connector: 'CCS2', status: 'busy' },
+                    { id: 'LT-AC-01', type: 'AC', power: 11, connector: 'Type 2', status: 'available' }
+                ],
+                auxiliaryServices: ['wifi', 'wc'], 
+                amenities: [{type:'hotel', name: 'Lotte Hotel', travelTime: 'Trong tòa nhà', open: '24/7', services: 'Lưu trú, Nhà hàng'}, {type:'food', name: 'Top of Hanoi', travelTime: 'Trong tòa nhà', open: '17:00 - 24:00', services: 'Rooftop Bar'}] 
+            },
+            "st_jw": { 
+                name: "Porsche Charging JW Marriott", time: 20, unitPrice: 3858, rating: 4.9, address: "8 Đỗ Đức Dục, Nam Từ Liêm", distance: "4.0 km", travelTime: "12 phút", type: "fastest", 
+                availability: { total: 2, free: 2 }, 
+                chargers: [
+                    { id: 'JW-DC-01', type: 'DC', power: 350, connector: 'CCS2', status: 'available' },
+                    { id: 'JW-DC-02', type: 'DC', power: 350, connector: 'CCS2', status: 'available' }
+                ],
+                auxiliaryServices: ['wifi', 'wc'], 
+                amenities: [{type:'hotel', name: 'JW Marriott', travelTime: 'Trong khuôn viên', open: '24/7', services: 'Lưu trú, Spa, Gym'}, {type:'cafe', name: 'The Lounge', travelTime: 'Trong khách sạn', open: '7:00 - 23:00', services: 'Đồ uống, Tiệc trà'}] 
+            },
         };
         
         const mockJourneys = [
@@ -130,15 +216,15 @@
             }
         ];
         
-        mockStations["st_vinh"] = { name: "ECharge Vinh", time: 45, cost: 110000, rating: 4.6, address: "100 Trần Phú, TP. Vinh", amenities: [{type:'food', name: 'Cháo lươn bà Ngọ'}, {type:'hotel', name: 'Khách sạn Mường Thanh'}] };
-        mockStations["st_danang"] = { name: "Da Nang PowerUp", time: 50, cost: 135000, rating: 4.9, address: "255 Nguyễn Văn Linh, Đà Nẵng", amenities: [{type:'food', name: 'Mì Quảng Bà Mua'}, {type:'entertainment', name: 'Cầu Rồng'}] };
-        mockStations["st_nhatrang"] = { name: "EVNCharge Nha Trang", time: 40, cost: 105000, rating: 4.7, address: "86 Trần Phú, Nha Trang", amenities: [{type:'cafe', name: 'Sailing Club'}, {type:'hotel', name: 'InterContinental Nha Trang'}] };
+        mockStations["st_vinh"] = { name: "ECharge Vinh", time: 45, unitPrice: 3200, rating: 4.6, address: "100 Trần Phú, TP. Vinh", amenities: [{type:'food', name: 'Cháo lươn bà Ngọ', travelTime: '5 phút đi bộ'}, {type:'hotel', name: 'Khách sạn Mường Thanh', travelTime: 'Đối diện'}] };
+        mockStations["st_danang"] = { name: "Da Nang PowerUp", time: 50, unitPrice: 3400, rating: 4.9, address: "255 Nguyễn Văn Linh, Đà Nẵng", amenities: [{type:'food', name: 'Mì Quảng Bà Mua', travelTime: '10 phút đi xe'}, {type:'entertainment', name: 'Cầu Rồng', travelTime: '15 phút đi xe'}] };
+        mockStations["st_nhatrang"] = { name: "EVNCharge Nha Trang", time: 40, unitPrice: 3150, rating: 4.7, address: "86 Trần Phú, Nha Trang", amenities: [{type:'cafe', name: 'Sailing Club', travelTime: '5 phút đi bộ'}, {type:'hotel', name: 'InterContinental Nha Trang', travelTime: 'Đối diện'}] };
         
         const mockFavoriteStations = ['st_nct', 'st_lotte'];
         const mockTravelSuggestions = [
-            { title: 'Khám phá Đà Nẵng', description: 'Mùa hè sôi động', image: 'https://placehold.co/300x200/3b82f6/ffffff?text=Đà+Nẵng' },
-            { title: 'Chào Sài Gòn', description: 'Nhịp sống không ngủ', image: 'https://placehold.co/300x200/ef4444/ffffff?text=Sài+Gòn' },
-            { title: 'Mộng mơ Đà Lạt', description: 'Không khí se lạnh', image: 'https://placehold.co/300x200/10b981/ffffff?text=Đà+Lạt' }
+            { title: 'Khám phá Đà Nẵng', description: 'Mùa hè sôi động', image: 'https://placehold.co/300x200/3b82f6/ffffff?text=Đà+Nẵng', destination: 'TP. Đà Nẵng' },
+            { title: 'Chào Sài Gòn', description: 'Nhịp sống không ngủ', image: 'https://placehold.co/300x200/ef4444/ffffff?text=Sài+Gòn', destination: 'TP. Hồ Chí Minh'},
+            { title: 'Mộng mơ Đà Lạt', description: 'Không khí se lạnh', image: 'https://placehold.co/300x200/10b981/ffffff?text=Đà+Lạt', destination: 'TP. Đà Lạt' }
         ];
 
         // --- APP STATE ---
@@ -148,15 +234,23 @@
                 activeTab: 'history'
             },
             request: {
-                currentSOC: 90, 
+                currentSOC: 35, 
                 startLocation: "91 Chùa Láng, Hà Nội",
                 destination: "",
             },
             booking: {
                 journey: null,
                 station: null,
-                timeSlot: null,
+                selectedChargerId: null,
+                chargeDuration: 0,
                 currentStepIndex: -1,
+            },
+            chargingSession: {
+                startTime: null,
+                startSOC: 0,
+                elapsedSeconds: 0,
+                energyCharged: 0,
+                cost: 0,
             },
             nearby: {
                 selectedCategory: 'recommended',
@@ -167,8 +261,8 @@
                 email: "nguyenvana@email.com",
                 phone: "0912345678",
                 cars: [
-                    { id: 'car1', name: 'BYD Atto 3', active: true },
-                    { id: 'car3', name: 'Kia EV6', active: false },
+                    { id: 'car1', name: 'BYD Atto 3', active: true, batteryCapacity: 60 }, // kWh
+                    { id: 'car3', name: 'Kia EV6', active: false, batteryCapacity: 77 }, // kWh
                 ]
             },
             simulationInterval: null,
@@ -177,15 +271,45 @@
         // --- HELPER FUNCTIONS ---
         const updateNavActiveState = (activeScreen) => {
              bottomNav.querySelectorAll('button').forEach(btn => {
-                btn.classList.remove('text-green-600');
-                btn.classList.add('text-gray-500');
-            });
-            const activeBtn = document.getElementById(`nav-${activeScreen}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('text-gray-500');
-                activeBtn.classList.add('text-green-600');
-            }
+                 btn.classList.remove('text-green-600');
+                 btn.classList.add('text-gray-500');
+             });
+             const activeBtn = document.getElementById(`nav-${activeScreen}`);
+             if (activeBtn) {
+                 activeBtn.classList.remove('text-gray-500');
+                 activeBtn.classList.add('text-green-600');
+             }
         }
+
+        const showManualSOCInput = () => {
+            const socDisplayArea = document.getElementById('soc-display-area');
+            const activeCar = appState.user.cars.find(car => car.active);
+            const currentSOC = appState.request.currentSOC;
+            socDisplayArea.innerHTML = `
+                <div>
+                    <p class="font-bold text-lg">${activeCar.name}</p>
+                    <p class="text-sm text-gray-500">Nhập % pin</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input id="manual-soc-input" type="number" value="${currentSOC}" class="w-20 text-right text-2xl font-bold bg-gray-100 rounded-lg p-1 border-2 border-green-500" min="0" max="100" onkeydown="if(event.key==='Enter') saveManualSOC()">
+                    <button class="bg-green-600 text-white rounded-lg px-3 py-1 font-semibold" onclick="saveManualSOC()">Lưu</button>
+                </div>
+            `;
+            document.getElementById('manual-soc-input').focus();
+        };
+
+        const saveManualSOC = () => {
+            const input = document.getElementById('manual-soc-input');
+            let newValue = parseInt(input.value);
+            if (isNaN(newValue) || newValue < 0) {
+                newValue = 0;
+            }
+            if (newValue > 100) {
+                newValue = 100;
+            }
+            appState.request.currentSOC = newValue;
+            renderHomeScreen();
+        };
 
         // --- TEMPLATES / RENDER FUNCTIONS ---
         const renderHomeScreen = () => {
@@ -205,7 +329,7 @@
             }).join('');
 
             const travelSuggestionsHTML = mockTravelSuggestions.map(suggestion => `
-                <div class="relative rounded-2xl overflow-hidden flex-shrink-0 w-48 h-32 text-white cursor-pointer shadow-lg" onclick="renderJourneyPlannerScreen()">
+                <div class="relative rounded-2xl overflow-hidden flex-shrink-0 w-48 h-32 text-white cursor-pointer shadow-lg" onclick="startSuggestedJourney('${suggestion.destination}')">
                     <img src="${suggestion.image}" class="absolute inset-0 w-full h-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                     <div class="relative p-3 h-full flex flex-col justify-end">
@@ -214,30 +338,47 @@
                     </div>
                 </div>
             `).join('');
+            
+            let chargingBannerHTML = '';
+            if (appState.simulationInterval && appState.booking.station) {
+                chargingBannerHTML = `
+                    <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-800 p-4 rounded-lg mb-4 cursor-pointer" onclick="renderChargingScreen()">
+                        <div class="flex">
+                            <div class="py-1"><svg class="w-6 h-6 text-blue-500 mr-4 animate-pulse" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
+                            <div>
+                                <p class="font-bold">Đang sạc xe</p>
+                                <p class="text-sm">Nhấn để theo dõi phiên sạc tại ${appState.booking.station.name}.</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
 
             mainContent.innerHTML = `
                 <div id="homeScreen" class="screen flex flex-col h-full">
                     <header class="p-4">
                         <div class="flex items-center justify-between">
                              <h2 class="text-2xl font-bold text-gray-800">Xin chào, ${appState.user.name.split(' ').pop()}!</h2>
-                             <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center" onclick="renderProfileScreen()">
-                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
+                             <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden" onclick="renderProfileScreen()">
+                                 <img src="https://placehold.co/40x40/EFEFEF/7B7B7B?text=A" alt="Avatar">
                              </div>
                         </div>
                         <div class="mt-4 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
-                            <div class="flex justify-between items-center">
+                            <div class="flex justify-between items-center" id="soc-display-area">
                                 <div>
                                     <p class="font-bold text-lg">${activeCar.name}</p>
                                     <p class="text-sm text-gray-500">Pin hiện tại</p>
                                 </div>
-                                <p class="text-2xl font-bold text-green-600">${appState.request.currentSOC}%</p>
+                                <button class="text-2xl font-bold text-green-600 text-right" onclick="showManualSOCInput()">${appState.request.currentSOC}%</button>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2.5 mt-3">
                                 <div class="bg-green-600 h-2.5 rounded-full" style="width: ${appState.request.currentSOC}%"></div>
                             </div>
                         </div>
                     </header>
-                    <div class="flex-1 overflow-y-auto px-4 space-y-6">
+                    <div class="flex-1 overflow-y-auto px-4 space-y-6 pb-6">
+                        ${chargingBannerHTML}
                         <div class="space-y-4">
                            <div class="bg-green-600 text-white p-5 rounded-2xl cursor-pointer hover:bg-green-700 transition-all flex justify-between items-center" onclick="renderNearbyStationsScreen()">
                                 <div>
@@ -263,7 +404,7 @@
                         <div>
                              <h3 class="font-bold text-lg text-gray-800 mb-3">Gợi ý hành trình</h3>
                              <div class="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                                ${travelSuggestionsHTML}
+                                 ${travelSuggestionsHTML}
                              </div>
                         </div>
                     </div>
@@ -271,36 +412,46 @@
             `;
         };
 
-        const renderJourneyPlannerScreen = () => {
+        const startSuggestedJourney = (destination) => {
+            appState.request.destination = destination;
+            renderJourneyPlannerScreen(true); // pass true to indicate it's from a suggestion
+        };
+
+        const renderJourneyPlannerScreen = (isFromSuggestion = false) => {
              bottomNav.classList.add('hidden');
+             const destinationValue = isFromSuggestion ? `value="${appState.request.destination}"` : 'placeholder="VD: TP. Hồ Chí Minh"';
              mainContent.innerHTML = `
-                <div id="journeyPlannerScreen" class="screen flex flex-col h-full">
-                     <header class="flex items-center p-4">
-                        <button onclick="renderHomeScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
-                        <h2 class="text-xl font-bold text-center flex-1">Lên Kế hoạch Hành trình</h2>
-                        <div class="w-8"></div>
-                    </header>
-                    <div class="flex-1 bg-gray-200 m-4 rounded-2xl relative overflow-hidden flex items-center justify-center">
-                        <img src="https://placehold.co/400x600/e2e8f0/64748b?text=Bản+đồ+Việt+Nam" class="w-full h-full object-cover opacity-50" alt="Bản đồ">
-                    </div>
-                    <div class="p-6 bg-white rounded-t-3xl shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.1)]">
-                         <div class="space-y-4">
-                            <div>
-                                <label class="text-sm font-medium text-gray-600">Điểm khởi hành</label>
-                                <input type="text" value="${appState.request.startLocation}" class="w-full p-3 mt-1 bg-gray-100 border border-gray-200 rounded-lg text-gray-700" readonly>
-                            </div>
-                            <div class="relative">
-                                <label class="text-sm font-medium text-gray-600">Bạn muốn đến đâu?</label>
-                                <input id="destination-input" type="text" placeholder="VD: TP. Hồ Chí Minh" class="w-full p-3 mt-1 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" onkeyup="handleDestinationInput(this.value)">
-                                <div id="destination-suggestions" class="absolute z-10 w-full bg-white border rounded-lg mt-1 shadow-lg hidden bottom-full mb-2"></div>
-                            </div>
-                         </div>
-                        <button onclick="openJourneyModal()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl text-lg hover:bg-blue-700 transition-colors mt-6">
-                            Lên hành trình
-                        </button>
-                    </div>
-                </div>
-            `;
+                 <div id="journeyPlannerScreen" class="screen flex flex-col h-full">
+                      <header class="flex items-center p-4">
+                          <button onclick="renderHomeScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+                          <h2 class="text-xl font-bold text-center flex-1">Lên Kế hoạch Hành trình</h2>
+                          <div class="w-8"></div>
+                      </header>
+                      <div class="flex-1 bg-gray-200 m-4 rounded-2xl relative overflow-hidden flex items-center justify-center">
+                          <img src="https://placehold.co/400x600/e2e8f0/64748b?text=Bản+đồ+Việt+Nam" class="w-full h-full object-cover opacity-50" alt="Bản đồ">
+                      </div>
+                      <div class="p-6 bg-white rounded-t-3xl shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.1)]">
+                           <div class="space-y-4">
+                               <div>
+                                   <label class="text-sm font-medium text-gray-600">Điểm khởi hành</label>
+                                   <input type="text" value="${appState.request.startLocation}" class="w-full p-3 mt-1 bg-gray-100 border border-gray-200 rounded-lg text-gray-700" readonly>
+                               </div>
+                               <div class="relative">
+                                   <label class="text-sm font-medium text-gray-600">Bạn muốn đến đâu?</label>
+                                   <input id="destination-input" type="text" ${destinationValue} class="w-full p-3 mt-1 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" onkeyup="handleDestinationInput(this.value)">
+                                   <div id="destination-suggestions" class="absolute z-10 w-full bg-white border rounded-lg mt-1 shadow-lg hidden bottom-full mb-2"></div>
+                               </div>
+                           </div>
+                          <button onclick="openJourneyModal()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl text-lg hover:bg-blue-700 transition-colors mt-6">
+                              Lên hành trình
+                          </button>
+                      </div>
+                 </div>
+             `;
+             if (isFromSuggestion) {
+                // If coming from a suggestion, immediately find journeys
+                setTimeout(openJourneyModal, 100);
+             }
         }
 
         const mockDestinations = [ "TP. Hồ Chí Minh", "TP. Đà Nẵng", "TP. Nha Trang" ];
@@ -323,13 +474,16 @@
 
         const openJourneyModal = () => {
             appState.request.destination = document.getElementById('destination-input').value || appState.request.destination;
-            if (!appState.request.destination) { alert("Vui lòng nhập điểm đến của bạn."); return; }
+            if (!appState.request.destination) { 
+                console.error("Vui lòng nhập điểm đến của bạn."); 
+                return; 
+            }
             findJourneys();
         };
 
         const findJourneys = () => { 
-            // Simulate a short delay for searching
-            setTimeout(renderResultsScreen, 350); 
+            mainContent.innerHTML = `<div class="flex items-center justify-center h-full"><div class="text-center"><div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div><p class="mt-3">Đang tìm hành trình...</p></div></div>`;
+            setTimeout(renderResultsScreen, 1000); 
         };
 
         const renderResultsScreen = () => {
@@ -384,11 +538,11 @@
             mainContent.innerHTML = `
                 <div id="resultsScreen" class="screen p-4 bg-gray-100 h-full">
                      <header class="flex items-center mb-4">
-                        <button onclick="renderJourneyPlannerScreen()" class="p-2 rounded-full hover:bg-gray-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
-                        <h2 class="text-xl font-bold text-center flex-1">Đề xuất Hành trình</h2>
-                        <div class="w-8"></div>
-                    </header>
-                    <div class="mt-4 space-y-4"> ${journeyCardsHTML} </div>
+                         <button onclick="renderJourneyPlannerScreen()" class="p-2 rounded-full hover:bg-gray-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+                         <h2 class="text-xl font-bold text-center flex-1">Đề xuất Hành trình</h2>
+                         <div class="w-8"></div>
+                     </header>
+                     <div class="mt-4 space-y-4"> ${journeyCardsHTML} </div>
                 </div>
             `;
         };
@@ -397,7 +551,7 @@
             appState.booking.journey = mockJourneys.find(j => j.id === journeyId);
             const journey = appState.booking.journey;
             let cumulativeTime = 0;
-            const startTime = new Date();
+            const startTime = new Date(); // Start time is now
 
             const amenityIcons = {
                 food: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500"><path d="M3 21h18v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2z"/><path d="M12 11a4 4 0 0 0-4 4v2h8v-2a4 4 0 0 0-4-4z"/><path d="M12 2v2"/><path d="M5 4.55a4 4 0 0 0-2 3.45v2h4v-2a4 4 0 0 0-2-3.45z"/><path d="M19 4.55a4 4 0 0 1 2 3.45v2h-4v-2a4 4 0 0 1 2-3.45z"/></svg>`,
@@ -407,26 +561,27 @@
             };
             
             const stepsHTML = journey.steps.map(step => {
-                const driveHours = Math.floor(step.duration / 60);
-                const driveMinutes = step.duration % 60;
-                cumulativeTime += step.duration;
-                const arrivalTime = new Date(startTime.getTime() + cumulativeTime * 60000);
-                const arrivalTimeString = arrivalTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                const stepStartTime = new Date(startTime.getTime() + cumulativeTime * 60000);
+                const stepStartString = `${stepStartTime.getHours()}:${stepStartTime.getMinutes().toString().padStart(2, '0')} - ${stepStartTime.toLocaleDateString('vi-VN')}`;
 
                 if (step.type === 'drive') {
+                    cumulativeTime += step.duration;
+                    const arrivalTime = new Date(startTime.getTime() + cumulativeTime * 60000);
+                    const arrivalTimeString = `${arrivalTime.getHours()}:${arrivalTime.getMinutes().toString().padStart(2, '0')} - ${arrivalTime.toLocaleDateString('vi-VN')}`;
+                    
                     return `
-                    <li class="mb-10 ml-6">            
+                    <li class="mb-10 ml-6">           
                         <span class="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-8 ring-white">
                             <svg class="w-3.5 h-3.5 text-blue-800" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><path d="M7 17h10"/><path d="M6 11h2"/><path d="M16 11h2"/><circle cx="8" cy="17" r="2"/><circle cx="16" cy="17" r="2"/></svg>
                         </span>
                         <h3 class="flex items-center mb-1 text-lg font-semibold text-gray-900">Lái xe tới ${step.to}</h3>
-                        <time class="block mb-2 text-sm font-normal leading-none text-gray-400">Dự kiến: ${driveHours}h ${driveMinutes}m - Tới nơi lúc ${arrivalTimeString}</time>
+                        <time class="block mb-2 text-sm font-normal leading-none text-gray-400">Từ ${stepStartString} <br> Tới ${arrivalTimeString}</time>
                     </li>
                     `;
                 } else { // charge
                     const station = mockStations[step.stationId];
                     cumulativeTime += station.time;
-                    const amenitiesHTML = station.amenities.map(item => {
+                     const amenitiesHTML = station.amenities.map(item => {
                         const itemJSON = JSON.stringify(item);
                         return `<button class="flex items-center space-x-2 bg-gray-100 p-2 rounded-lg" onclick='renderAmenityDetailsModal(${itemJSON})'>
                                     ${amenityIcons[item.type] || ''}
@@ -439,17 +594,17 @@
                             <svg class="w-3 h-3 text-green-800" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-8"/><path d="M8.5 10.5 12 7l3.5 3.5"/><path d="M12 2v5"/></svg>
                         </span>
                          <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                            <div class="items-center justify-between mb-3 sm:flex">
-                                <div class="text-sm font-normal text-gray-500">Dừng sạc tại <span class="font-semibold text-gray-900">${station.name}</span></div>
-                            </div>
-                            <div class="p-3 my-3 text-xs italic font-normal text-gray-500 border border-gray-200 rounded-lg bg-gray-50">
-                                Sạc trong <span class="font-medium">${station.time} phút</span>. Chi phí ước tính: <span class="font-medium">${station.cost.toLocaleString('vi-VN')}đ</span>.
-                            </div>
-                             <div>
-                                <h4 class="font-semibold mb-2 text-sm">Tiện ích xung quanh:</h4>
-                                <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">${amenitiesHTML}</div>
-                            </div>
-                        </div>
+                             <div class="items-center justify-between mb-3 sm:flex">
+                                 <div class="text-sm font-normal text-gray-500">Dừng sạc tại <span class="font-semibold text-gray-900">${station.name}</span></div>
+                             </div>
+                             <div class="p-3 my-3 text-xs italic font-normal text-gray-500 border border-gray-200 rounded-lg bg-gray-50">
+                                 Sạc trong <span class="font-medium">${station.time} phút</span>. Đơn giá: <span class="font-medium">${station.unitPrice.toLocaleString('vi-VN')}đ/kWh</span>.
+                             </div>
+                              <div>
+                                 <h4 class="font-semibold mb-2 text-sm">Tiện ích xung quanh:</h4>
+                                 <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">${amenitiesHTML}</div>
+                             </div>
+                         </div>
                     </li>
                     `;
                 }
@@ -460,42 +615,36 @@
             mainContent.innerHTML = `
                 <div id="journeyDetailsScreen" class="screen flex flex-col h-full relative">
                      <header class="flex items-center p-4">
-                        <button onclick="renderResultsScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
-                        <h2 class="text-xl font-bold text-center flex-1">Chi tiết Hành trình</h2>
-                        <div class="w-8"></div>
-                    </header>
-                    <div class="h-48 bg-gray-300 relative flex items-center justify-center">
-                        <img src="https://placehold.co/400x192/d1d5db/4b5563?text=Map+Route+Hanoi+-+HCMC" class="w-full h-full object-cover" alt="Bản đồ hành trình">
-                    </div>
-                    <div class="flex-1 overflow-y-auto p-4">
-                        <h3 class="font-bold text-lg mb-4">Lộ trình sạc: Hà Nội - ${appState.request.destination}</h3>
-                        <ol class="relative border-l border-gray-200">                  
-                            ${stepsHTML}
-                             <li class="ml-6">
-                                <span class="absolute flex items-center justify-center w-6 h-6 bg-yellow-100 rounded-full -left-3 ring-8 ring-white">
-                                    <svg class="w-3 h-3 text-yellow-800" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                                </span>
-                                <h3 class="text-lg font-semibold">Đến ${appState.request.destination}</h3>
-                                <p class="text-sm text-gray-500">Dự kiến lúc: ${finalEta.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - ${finalEta.toLocaleDateString('vi-VN')}</p>
-                            </li>
-                        </ol>
-                    </div>
-                    <div class="p-4 bg-white mt-auto border-t">
-                        <button class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700" onclick="renderConfirmJourneyBooking()">
-                           Xác nhận & Đặt trước tất cả điểm sạc
-                        </button>
-                    </div>
+                         <button onclick="renderResultsScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+                         <h2 class="text-xl font-bold text-center flex-1">Chi tiết Hành trình</h2>
+                         <div class="w-8"></div>
+                     </header>
+                     <div class="h-48 bg-gray-300 relative flex items-center justify-center">
+                         <img src="https://placehold.co/400x192/d1d5db/4b5563?text=Map+Route+Hanoi+-+HCMC" class="w-full h-full object-cover" alt="Bản đồ hành trình">
+                     </div>
+                     <div class="flex-1 overflow-y-auto p-4">
+                         <h3 class="font-bold text-lg mb-4">Lộ trình sạc: Hà Nội - ${appState.request.destination}</h3>
+                         <ol class="relative border-l border-gray-200">                  
+                             ${stepsHTML}
+                              <li class="ml-6">
+                                  <span class="absolute flex items-center justify-center w-6 h-6 bg-yellow-100 rounded-full -left-3 ring-8 ring-white">
+                                      <svg class="w-3 h-3 text-yellow-800" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                  </span>
+                                  <h3 class="text-lg font-semibold">Đến ${appState.request.destination}</h3>
+                                  <p class="text-sm text-gray-500">Dự kiến lúc: ${finalEta.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - ${finalEta.toLocaleDateString('vi-VN')}</p>
+                              </li>
+                         </ol>
+                     </div>
+                     <div class="p-4 bg-white mt-auto border-t">
+                         <button class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700" onclick="renderConfirmJourneyBooking()">
+                            Xác nhận & Đặt trước tất cả điểm sạc
+                         </button>
+                     </div>
                 </div>
             `;
         };
 
         const renderAmenityDetailsModal = (amenity) => {
-            const amenityIcons = {
-                food: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500"><path d="M3 21h18v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2z"/><path d="M12 11a4 4 0 0 0-4 4v2h8v-2a4 4 0 0 0-4-4z"/><path d="M12 2v2"/><path d="M5 4.55a4 4 0 0 0-2 3.45v2h4v-2a4 4 0 0 0-2-3.45z"/><path d="M19 4.55a4 4 0 0 1 2 3.45v2h-4v-2a4 4 0 0 1 2-3.45z"/></svg>`,
-                cafe: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-700"><path d="M10 21h4v-2a2 2 0 0 0-2-2h0a2 2 0 0 0-2 2v2z"/><path d="M20 8h-2.5a2.5 2.5 0 0 1 0-5h0A2.5 2.5 0 0 1 20 8z"/><path d="M4 8a3 3 0 0 1 3-3h9a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V8z"/></svg>`,
-                hotel: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><path d="M10 22v-6.57"/><path d="M12 11h.01"/><path d="M12 7h.01"/><path d="M14 15.43V22"/><path d="M15 4H9a2 2 0 0 0-2 2v12h10V6a2 2 0 0 0-2-2z"/><path d="M21 17h-2a2 2 0 0 0-2 2v3h4v-5z"/><path d="M3 17h2a2 2 0 0 1 2 2v3H3v-5z"/></svg>`,
-                entertainment: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-500"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"/></svg>`
-            };
             const modal = document.createElement('div');
             modal.id = 'amenityModal';
             modal.className = 'absolute inset-0 bg-black/30 z-20 flex items-end';
@@ -504,21 +653,26 @@
                 <div class="w-full bg-white p-6 rounded-t-3xl shadow-lg modal-enter" onclick="event.stopPropagation()">
                     <div class="flex justify-between items-start mb-4">
                         <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full flex-shrink-0">${amenityIcons[amenity.type]}</div>
+                            <div class="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-full flex-shrink-0">
+                                 <!-- Icon would go here -->
+                            </div>
                             <div>
                                 <h3 class="text-xl font-bold">${amenity.name}</h3>
-                                <p class="text-sm text-gray-500">Quán ăn • 50m • 2 phút đi bộ</p>
+                                <p class="text-sm text-gray-500">${amenity.travelTime} • Mở cửa: ${amenity.open || 'N/A'}</p>
                             </div>
                         </div>
                         <button onclick="closeAmenityModal()" class="text-gray-400 text-2xl">&times;</button>
                     </div>
+                    <p class="text-sm my-2">Dịch vụ: ${amenity.services || 'Thông tin chưa được cung cấp.'}</p>
                     <div class="h-48 bg-gray-200 rounded-lg my-4 flex items-center justify-center">
                         <img src="https://placehold.co/300x192/e5e7eb/4b5563?text=Map+to+Amenity" class="w-full h-full object-cover rounded-lg" alt="Map to amenity">
                     </div>
                     <button class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl">Chỉ đường</button>
                 </div>
             `;
-            document.querySelector('#journeyDetailsScreen').appendChild(modal);
+            // Find the current top-most screen to append the modal to
+            const currentScreen = document.querySelector('.screen');
+            if(currentScreen) currentScreen.appendChild(modal);
         };
 
         const closeAmenityModal = () => {
@@ -549,25 +703,25 @@
 
             mainContent.innerHTML = `
                  <div id="confirmJourneyBookingScreen" class="screen flex flex-col h-full">
-                     <header class="flex items-center p-4">
-                        <button onclick="renderJourneyDetailsScreen('${journey.id}')" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
-                        <h2 class="text-xl font-bold text-center flex-1">Xác nhận Hành trình</h2>
-                        <div class="w-8"></div>
-                    </header>
-                    <div class="p-4 flex-1">
-                        <h3 class="font-bold text-lg mb-2">Hệ thống sẽ đặt trước các điểm sạc sau:</h3>
-                        <div class="bg-white p-4 rounded-xl border divide-y">
-                            ${stopsHTML}
-                        </div>
-                        <div class="mt-6 text-xs text-gray-500 bg-gray-100 p-3 rounded-lg">
-                            Các điểm sạc sẽ được giữ chỗ linh hoạt dựa trên tiến độ di chuyển thực tế của bạn. Bạn sẽ nhận được thông báo khi sắp đến điểm sạc.
-                        </div>
-                    </div>
-                    <div class="p-4 bg-white mt-auto border-t">
-                        <button class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700" onclick="startJourney()">
-                           Bắt đầu hành trình
-                        </button>
-                    </div>
+                      <header class="flex items-center p-4">
+                          <button onclick="renderJourneyDetailsScreen('${journey.id}')" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+                          <h2 class="text-xl font-bold text-center flex-1">Xác nhận Hành trình</h2>
+                          <div class="w-8"></div>
+                      </header>
+                      <div class="p-4 flex-1">
+                          <h3 class="font-bold text-lg mb-2">Hệ thống sẽ đặt trước các điểm sạc sau:</h3>
+                          <div class="bg-white p-4 rounded-xl border divide-y">
+                              ${stopsHTML}
+                          </div>
+                          <div class="mt-6 text-xs text-gray-500 bg-gray-100 p-3 rounded-lg">
+                              Các điểm sạc sẽ được giữ chỗ linh hoạt dựa trên tiến độ di chuyển thực tế của bạn. Bạn sẽ nhận được thông báo khi sắp đến điểm sạc.
+                          </div>
+                      </div>
+                      <div class="p-4 bg-white mt-auto border-t">
+                          <button class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700" onclick="startJourney()">
+                             Bắt đầu hành trình
+                          </button>
+                      </div>
                  </div>
             `;
         };
@@ -594,18 +748,16 @@
             const arrivalTimeString = arrivalDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
             if (nextStep && nextStep.type === 'charge') {
-                // It's a leg to the next charging station
                 const station = mockStations[nextStep.stationId];
                 destinationName = station.name;
                 buttonHTML = `<button class="w-full mt-2 bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700" onclick="arriveAtStation('${nextStep.stationId}')">
-                               (Mô phỏng) Đã tới trạm sạc
-                             </button>`;
+                                 (Mô phỏng) Đã tới trạm sạc
+                               </button>`;
             } else {
-                // It's the final leg to the destination
                 destinationName = appState.request.destination;
                 buttonHTML = `<button class="w-full mt-2 bg-yellow-500 text-white font-bold py-3 rounded-xl hover:bg-yellow-600" onclick="renderJourneyCompleteScreen()">
-                               (Mô phỏng) Đã tới đích
-                             </button>`;
+                                 (Mô phỏng) Đã tới đích
+                               </button>`;
             }
 
             mainContent.innerHTML = `
@@ -650,58 +802,57 @@
              appState.nearby.selectedStationId = null;
 
              const categories = {
-                recommended: { name: 'Khuyên dùng', icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`, color: 'yellow-500', textColor: 'black' },
-                nearest: { name: 'Gần nhất', icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`, color: 'blue-500', textColor: 'white' },
-                cheapest: { name: 'Rẻ nhất', icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`, color: 'green-600', textColor: 'white' },
-                fastest: { name: 'Nhanh nhất', icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>`, color: 'orange-500', textColor: 'white' }
+                 recommended: { name: 'Khuyên dùng', icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>`, color: 'yellow-500', textColor: 'black' },
+                 nearest: { name: 'Gần nhất', icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`, color: 'blue-500', textColor: 'white' },
+                 cheapest: { name: 'Rẻ nhất', icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`, color: 'green-600', textColor: 'white' },
+                 fastest: { name: 'Nhanh nhất', icon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>`, color: 'orange-500', textColor: 'white' }
              };
 
              const categoryTabsHTML = Object.keys(categories).map(key => {
-                const cat = categories[key];
-                const isActive = key === appState.nearby.selectedCategory;
-                 return `<button id="tab-${key}" class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors ${isActive ? `bg-${cat.color} text-${cat.textColor}` : 'bg-gray-200 text-gray-700'}" onclick="filterNearbyStations('${key}')">${cat.icon} <span>${cat.name}</span></button>`;
+                 const cat = categories[key];
+                 const isActive = key === appState.nearby.selectedCategory;
+                  return `<button id="tab-${key}" class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-colors ${isActive ? `bg-${cat.color} text-${cat.textColor}` : 'bg-gray-200 text-gray-700'}" onclick="filterNearbyStations('${key}')">${cat.icon} <span>${cat.name}</span></button>`;
              }).join('');
 
              mainContent.innerHTML = `
-                <div id="nearbyScreen" class="screen flex flex-col h-full relative">
-                     <header class="flex items-center p-4">
-                        <button onclick="renderHomeScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
-                        <h2 class="text-xl font-bold text-center flex-1">Trạm sạc Gần đây</h2>
-                        <div class="w-8"></div>
-                    </header>
-                    <div class="h-48 bg-gray-300 relative flex items-center justify-center">
-                        <img src="https://placehold.co/400x192/d1d5db/4b5563?text=Bản+đồ+khu+vực+Chùa+Láng" class="w-full h-full object-cover" alt="Bản đồ khu vực Chùa Láng">
-                    </div>
-                    <div class="px-4 py-3">
-                        <div class="flex gap-2 overflow-x-auto no-scrollbar">
-                           ${categoryTabsHTML}
-                        </div>
-                    </div>
-                    <div id="nearby-station-list" class="flex-1 overflow-y-auto p-4 pt-0 space-y-3">
-                        <!-- Station cards will be rendered here -->
-                    </div>
-                    <div id="nearby-footer" class="p-4 bg-white mt-auto border-t">
-                        <button id="nearby-booking-btn" class="w-full bg-gray-300 text-white font-bold py-3 rounded-xl transition-all" disabled onclick="renderDetailsScreen(appState.nearby.selectedStationId)">
-                            Chọn & Đặt chỗ
-                        </button>
-                    </div>
-                </div>
+                 <div id="nearbyScreen" class="screen flex flex-col h-full relative">
+                      <header class="flex items-center p-4">
+                          <button onclick="renderHomeScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+                          <h2 class="text-xl font-bold text-center flex-1">Trạm sạc Gần đây</h2>
+                          <div class="w-8"></div>
+                      </header>
+                      <div class="h-48 bg-gray-300 relative flex items-center justify-center">
+                          <img src="https://placehold.co/400x192/d1d5db/4b5563?text=Bản+đồ+khu+vực+Chùa+Láng" class="w-full h-full object-cover" alt="Bản đồ khu vực Chùa Láng">
+                      </div>
+                      <div class="px-4 py-3">
+                          <div class="flex gap-2 overflow-x-auto no-scrollbar">
+                             ${categoryTabsHTML}
+                          </div>
+                      </div>
+                      <div id="nearby-station-list" class="flex-1 overflow-y-auto p-4 pt-0 space-y-3">
+                          <!-- Station cards will be rendered here -->
+                      </div>
+                      <div id="nearby-footer" class="p-4 bg-white mt-auto border-t">
+                          <button id="nearby-booking-btn" class="w-full bg-gray-300 text-white font-bold py-3 rounded-xl transition-all" disabled onclick="renderDetailsScreen(appState.nearby.selectedStationId)">
+                              Chọn & Đặt chỗ
+                          </button>
+                      </div>
+                 </div>
              `;
              filterNearbyStations(appState.nearby.selectedCategory);
         };
 
         const filterNearbyStations = (category) => {
             appState.nearby.selectedCategory = category;
-            appState.nearby.selectedStationId = null; // Deselect station when changing category
+            appState.nearby.selectedStationId = null; 
             
              const categories = {
-                recommended: { name: 'Khuyên dùng', color: 'yellow-500', textColor: 'black' },
-                nearest: { name: 'Gần nhất', color: 'blue-500', textColor: 'white' },
-                cheapest: { name: 'Rẻ nhất', color: 'green-600', textColor: 'white' },
-                fastest: { name: 'Nhanh nhất', color: 'orange-500', textColor: 'white' }
+                 recommended: { name: 'Khuyên dùng', color: 'yellow-500', textColor: 'black' },
+                 nearest: { name: 'Gần nhất', color: 'blue-500', textColor: 'white' },
+                 cheapest: { name: 'Rẻ nhất', color: 'green-600', textColor: 'white' },
+                 fastest: { name: 'Nhanh nhất', color: 'orange-500', textColor: 'white' }
              };
 
-            // Update active tab style
             Object.keys(categories).forEach(key => {
                 const tab = document.getElementById(`tab-${key}`);
                 const cat = categories[key];
@@ -716,50 +867,47 @@
 
             let stationList = Object.entries(mockStations).filter(([id, _]) => id.startsWith('st_') && !["st_vinh", "st_danang", "st_nhatrang"].includes(id));
             
-            // Simple sorting logic for demo
             switch(category) {
-                case 'recommended':
-                    stationList.sort(([, a], [, b]) => b.rating - a.rating);
-                    break;
-                case 'nearest':
-                    stationList.sort(([, a], [, b]) => parseFloat(a.distance) - parseFloat(b.distance));
-                    break;
-                case 'cheapest':
-                    stationList.sort(([, a], [, b]) => a.cost - b.cost);
-                    break;
-                case 'fastest':
-                    stationList.sort(([, a], [, b]) => a.time - b.time);
-                    break;
+                case 'recommended': stationList.sort(([, a], [, b]) => b.rating - a.rating); break;
+                case 'nearest': stationList.sort(([, a], [, b]) => parseFloat(a.distance) - parseFloat(b.distance)); break;
+                case 'cheapest': stationList.sort(([, a], [, b]) => a.unitPrice - b.unitPrice); break;
+                case 'fastest': stationList.sort(([, a], [, b]) => a.time - b.time); break;
             }
+
+            const amenityIconsTiny = {
+                food: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500"><path d="M3 21h18v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2z"/><path d="M12 11a4 4 0 0 0-4 4v2h8v-2a4 4 0 0 0-4-4z"/></svg>`,
+                cafe: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-700"><path d="M10 21h4v-2a2 2 0 0 0-2-2h0a2 2 0 0 0-2 2v2z"/><path d="M4 8a3 3 0 0 1 3-3h9a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V8z"/></svg>`,
+                hotel: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><path d="M15 4H9a2 2 0 0 0-2 2v12h10V6a2 2 0 0 0-2-2z"/></svg>`,
+                entertainment: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-purple-500"><path d="m10 13l-4 4l6 6l4-4l-6-6z"/><path d="m14 11l6-6l-4-4l-6 6l4 4z"/></svg>`,
+                wifi: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-sky-500"><path d="M5 12.55a8 8 0 0 1 14 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a4 4 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`,
+                wc: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M8 16a4 4 0 1 0 8 0V7a4 4 0 1 0-8 0v2a2 2 0 0 1 4 0v2"/><path d="M2 16h2"/><path d="M20 16h2"/></svg>`
+            };
 
             const stationCardsHTML = stationList.map(([id, station]) => {
                 const isSelected = id === appState.nearby.selectedStationId;
+                const amenitiesHTML = (station.amenities || []).map(a => amenityIconsTiny[a.type] || '').join('');
+                const servicesHTML = (station.auxiliaryServices || []).map(s => amenityIconsTiny[s] || '').join('');
+
                 return `
-                    <div id="station-card-${id}" class="bg-white p-4 rounded-2xl border-2 ${isSelected ? 'border-green-600' : 'border-transparent'} shadow-sm cursor-pointer transition-all" onclick="selectNearbyStation('${id}')">
+                    <div id="station-card-${id}" class="bg-white p-4 rounded-2xl border-2 ${isSelected ? 'border-green-600' : 'border-gray-200'} shadow-sm cursor-pointer transition-all" onclick="selectNearbyStation('${id}')">
                         <div class="flex justify-between items-start">
-                             <h3 class="font-bold text-lg text-gray-800">${station.name}</h3>
-                              <button class="p-1 text-gray-400 hover:text-blue-600" onclick="event.stopPropagation(); renderStationDetailsModal('${id}')">
-                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                              </button>
-                        </div>
-                        <div class="flex items-center space-x-1 mt-1 text-xs text-yellow-500">
-                           <span>${station.rating}</span>
-                           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                             <div class="flex-1 pr-2">
+                                <h3 class="font-bold text-lg text-gray-800">${station.name}</h3>
+                                <p class="text-xs text-gray-500">${station.distance} - ${station.travelTime}</p>
+                             </div>
+                             <div class="text-right flex-shrink-0">
+                                <p class="font-bold text-green-600">${station.unitPrice.toLocaleString('vi-VN')}đ/kWh</p>
+                                <p class="text-xs font-semibold ${station.availability.free > 0 ? 'text-green-500' : 'text-red-500'}">Trống ${station.availability.free}/${station.availability.total}</p>
+                             </div>
                         </div>
                         <div class="border-t my-3"></div>
-                        <div class="flex justify-between text-sm">
-                            <div class="text-center">
-                                <p class="font-bold">${station.distance}</p>
-                                <p class="text-xs text-gray-500">${station.travelTime}</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="font-bold">${station.time} phút</p>
-                                <p class="text-xs text-gray-500">Sạc nhanh</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="font-bold text-green-600">${station.cost.toLocaleString('vi-VN')}đ</p>
-                                <p class="text-xs text-gray-500">Ước tính</p>
-                            </div>
+                        <div class="flex justify-between items-center">
+                           <div class="flex items-center gap-2 text-xs">
+                             ${amenitiesHTML} ${servicesHTML}
+                           </div>
+                           <button class="p-1 text-gray-400 hover:text-blue-600" onclick="event.stopPropagation(); renderStationDetailsModal('${id}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                           </button>
                         </div>
                     </div>
                 `;
@@ -772,11 +920,11 @@
         const selectNearbyStation = (stationId) => {
             appState.nearby.selectedStationId = stationId;
 
-            // Update card styles
             document.querySelectorAll('#nearby-station-list > div').forEach(card => {
                 card.classList.remove('border-green-600');
-                card.classList.add('border-transparent');
+                card.classList.add('border-gray-200');
             });
+            document.getElementById(`station-card-${stationId}`).classList.remove('border-gray-200');
             document.getElementById(`station-card-${stationId}`).classList.add('border-green-600');
             
             updateNearbyBookingButton();
@@ -789,12 +937,12 @@
                 btn.classList.remove('bg-gray-300');
                 btn.classList.add('bg-green-600');
                 const station = mockStations[appState.nearby.selectedStationId];
-                btn.textContent = `Chọn & Đặt chỗ - ${station.name}`;
+                btn.textContent = `Xem chi tiết & Đặt chỗ`;
             } else {
                 btn.disabled = true;
                 btn.classList.add('bg-gray-300');
                 btn.classList.remove('bg-green-600');
-                btn.textContent = 'Chọn & Đặt chỗ';
+                btn.textContent = 'Chọn một trạm sạc';
             }
         };
 
@@ -805,34 +953,53 @@
             modal.className = 'absolute inset-0 bg-black/30 z-20 flex items-end';
             modal.setAttribute('onclick', 'closeStationDetailsModal()');
 
+            const serviceIcons = {
+                wifi: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-sky-500"><path d="M5 12.55a8 8 0 0 1 14 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a4 4 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`,
+                wc: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M8 16a4 4 0 1 0 8 0V7a4 4 0 1 0-8 0v2a2 2 0 0 1 4 0v2"/><path d="M2 16h2"/><path d="M20 16h2"/></svg>`,
+            };
             const amenityIcons = {
-                food: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500"><path d="M3 21h18v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2z"/><path d="M12 11a4 4 0 0 0-4 4v2h8v-2a4 4 0 0 0-4-4z"/><path d="M12 2v2"/><path d="M5 4.55a4 4 0 0 0-2 3.45v2h4v-2a4 4 0 0 0-2-3.45z"/><path d="M19 4.55a4 4 0 0 1 2 3.45v2h-4v-2a4 4 0 0 1 2-3.45z"/></svg>`,
+                food: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500"><path d="M3 21h18v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2z"/><path d="M12 11a4 4 0 0 0-4 4v2h8v-2a4 4 0 0 0-4-4z"/></svg>`,
                 cafe: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-700"><path d="M10 21h4v-2a2 2 0 0 0-2-2h0a2 2 0 0 0-2 2v2z"/><path d="M20 8h-2.5a2.5 2.5 0 0 1 0-5h0A2.5 2.5 0 0 1 20 8z"/><path d="M4 8a3 3 0 0 1 3-3h9a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V8z"/></svg>`,
-                hotel: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><path d="M10 22v-6.57"/><path d="M12 11h.01"/><path d="M12 7h.01"/><path d="M14 15.43V22"/><path d="M15 4H9a2 2 0 0 0-2 2v12h10V6a2 2 0 0 0-2-2z"/><path d="M21 17h-2a2 2 0 0 0-2 2v3h4v-5z"/><path d="M3 17h2a2 2 0 0 1 2 2v3H3v-5z"/></svg>`,
+                hotel: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500"><path d="M10 22v-6.57"/><path d="M12 11h.01"/><path d="M12 7h.01"/><path d="M14 15.43V22"/><path d="M15 4H9a2 2 0 0 0-2 2v12h10V6a2 2 0 0 0-2-2z"/></svg>`,
                 entertainment: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-500"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"/></svg>`
             };
-             const amenitiesHTML = station.amenities.map(item => `<div class="flex items-center space-x-2">${amenityIcons[item.type] || ''}<span class="text-sm font-medium text-gray-700">${item.name}</span></div>`).join('');
+
+             const servicesHTML = (station.auxiliaryServices || []).map(s => `<div class="flex items-center space-x-2">${serviceIcons[s] || ''}<span class="text-sm font-medium text-gray-700 uppercase">${s}</span></div>`).join('');
+             const amenitiesHTML = (station.amenities || []).map(item => `
+                <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-2">
+                        ${amenityIcons[item.type] || ''}
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">${item.name}</p>
+                            <p class="text-xs text-gray-500">${item.travelTime}</p>
+                        </div>
+                    </div>
+                    <button class="text-xs font-semibold text-blue-600">Chỉ đường</button>
+                </div>
+            `).join('');
             
             modal.innerHTML = `
                  <div class="w-full bg-white max-h-[90%] flex flex-col rounded-t-3xl shadow-lg modal-enter" onclick="event.stopPropagation()">
-                    <header class="p-4 flex-shrink-0">
-                         <h3 class="text-xl font-bold">${station.name}</h3>
-                         <p class="text-sm text-gray-500">${station.address}</p>
-                    </header>
-                    <div class="overflow-y-auto px-4 pb-4">
-                        <div class="h-40 bg-gray-200 rounded-lg my-2"></div>
-                        <h4 class="font-bold mt-4 mb-2">Tiện ích</h4>
-                        <div class="space-y-2">${amenitiesHTML}</div>
-                        <h4 class="font-bold mt-4 mb-2">Đánh giá</h4>
-                        <div class="bg-gray-100 p-3 rounded-lg">
-                            <p class="font-semibold">"Trạm sạc nhanh, gần quán cafe tiện lợi."</p>
-                            <p class="text-xs text-gray-500 mt-1">- Nguyễn Văn B, 2 ngày trước</p>
-                        </div>
-                    </div>
-                     <div class="p-4 bg-white mt-auto border-t flex-shrink-0">
-                        <button class="w-full bg-green-600 text-white font-bold py-3 rounded-xl" onclick="renderDetailsScreen('${stationId}')">Đặt chỗ tại trạm này</button>
-                    </div>
-                </div>
+                     <header class="p-4 flex-shrink-0">
+                          <h3 class="text-xl font-bold">${station.name}</h3>
+                          <p class="text-sm text-gray-500">${station.address}</p>
+                     </header>
+                     <div class="overflow-y-auto px-4 pb-4">
+                         <div class="h-40 bg-gray-200 rounded-lg my-2 flex items-center justify-center text-gray-500">Ảnh trạm sạc</div>
+                         <h4 class="font-bold mt-4 mb-2">Dịch vụ tại trạm</h4>
+                         <div class="grid grid-cols-3 gap-2">${servicesHTML}</div>
+                         <h4 class="font-bold mt-4 mb-2">Tiện ích xung quanh</h4>
+                         <div class="space-y-2">${amenitiesHTML}</div>
+                         <h4 class="font-bold mt-4 mb-2">Đánh giá</h4>
+                         <div class="bg-gray-100 p-3 rounded-lg">
+                             <p class="font-semibold">"Trạm sạc nhanh, gần quán cafe tiện lợi."</p>
+                             <p class="text-xs text-gray-500 mt-1">- Nguyễn Văn B, 2 ngày trước</p>
+                         </div>
+                     </div>
+                      <div class="p-4 bg-white mt-auto border-t flex-shrink-0">
+                          <button class="w-full bg-green-600 text-white font-bold py-3 rounded-xl" onclick="renderDetailsScreen('${stationId}')">Đặt chỗ tại trạm này</button>
+                     </div>
+                 </div>
             `;
             document.querySelector('#nearbyScreen').appendChild(modal);
         };
@@ -850,90 +1017,212 @@
             appState.booking.journey = null;
             appState.booking.currentStepIndex = -1;
             appState.booking.station = mockStations[stationId];
+            appState.booking.selectedChargerId = null; // Reset selected charger
             const station = appState.booking.station;
             
-            const timeSlots = ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30'].map(time => `
-                <button class="time-slot-btn flex-shrink-0 px-4 py-2 border-2 border-gray-300 rounded-full text-gray-700 font-medium hover:border-green-600" onclick="selectTimeSlot(this, '${time}')">${time}</button>
-            `).join('');
-
             mainContent.innerHTML = `
-                <div id="detailsScreen" class="screen">
+                <div id="detailsScreen" class="screen flex flex-col h-full">
                      <header class="flex items-center p-4">
-                        <button onclick="renderNearbyStationsScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
-                        <h2 class="text-xl font-bold text-center flex-1">Đặt chỗ sạc</h2>
-                         <div class="w-8"></div>
-                    </header>
-                    <div class="p-4 pt-0">
-                        <div class="bg-white p-4 rounded-xl border border-gray-200">
-                             <h3 class="text-2xl font-bold text-gray-800">${station.name}</h3>
-                             <p class="text-gray-500 mt-1">${station.address}</p>
-                             <div class="flex items-center space-x-1 mt-2 text-sm text-yellow-500">
-                                <span>${station.rating}</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-yellow-400"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                                <span class="text-gray-400">(125 đánh giá)</span>
+                         <button onclick="renderNearbyStationsScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+                         <h2 class="text-xl font-bold text-center flex-1">Đặt chỗ sạc</h2>
+                          <div class="w-8"></div>
+                     </header>
+                     <div class="p-4 pt-0 flex-1 overflow-y-auto no-scrollbar">
+                         <div class="bg-white p-4 rounded-xl border border-gray-200">
+                              <h3 class="text-2xl font-bold text-gray-800">${station.name}</h3>
+                              <p class="text-gray-500 mt-1">${station.address}</p>
+                              <div class="flex items-center space-x-1 mt-2 text-sm text-yellow-500">
+                                  <span>${station.rating}</span>
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-yellow-400"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                  <span class="text-gray-400">(125 đánh giá)</span>
+                              </div>
+                         </div>
+
+                         <div class="mt-6">
+                            <h4 class="font-bold text-lg mb-3">1. Chọn loại trụ & dây sạc</h4>
+                            <div class="flex bg-gray-200 rounded-lg p-1" id="charger-type-tabs">
+                                <button class="flex-1 p-2 rounded-md font-semibold bg-white text-green-600 shadow" onclick="renderChargerList('DC', '${stationId}')">Sạc nhanh DC</button>
+                                <button class="flex-1 p-2 rounded-md font-semibold text-gray-600" onclick="renderChargerList('AC', '${stationId}')">Sạc thường AC</button>
                             </div>
-                        </div>
-                        <div class="mt-6">
-                            <h4 class="font-bold text-lg mb-3">Chọn khung giờ đến</h4>
-                            <div class="flex space-x-3 overflow-x-auto pb-2 no-scrollbar">${timeSlots}</div>
-                        </div>
-                    </div>
-                    <div id="confirm-footer" class="p-4 bg-white mt-auto sticky bottom-0 border-t">
-                        <button id="confirm-booking-btn" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl disabled:bg-gray-300" disabled onclick="renderConfirmScreen()">Chọn khung giờ</button>
-                    </div>
+                            <div id="charger-list-container" class="mt-3 space-y-2">
+                                <!-- Charger list will be rendered here -->
+                            </div>
+                         </div>
+
+                         <div class="mt-6">
+                             <h4 class="font-bold text-lg mb-1">2. Chọn thời gian sạc</h4>
+                             <p class="text-xs text-gray-500 mb-4">Kéo để chọn thời gian bắt đầu và kết thúc.</p>
+                             
+                             <div class="flex justify-between font-semibold">
+                                <div id="start-time-display">08:00</div>
+                                <div id="end-time-display">10:00</div>
+                             </div>
+                             <div class="range-slider">
+                                <div class="slider-track"></div>
+                                <div id="slider-range"></div>
+                                <input type="range" min="0" max="1439" value="480" id="slider-1" oninput="updateTimeSlider()">
+                                <input type="range" min="0" max="1439" value="600" id="slider-2" oninput="updateTimeSlider()">
+                             </div>
+                             
+                             <div id="estimation-box" class="mt-4 bg-gray-100 p-3 rounded-lg text-center hidden">
+                                <p class="text-sm">Thời gian sạc: <span id="duration-display" class="font-bold">2 giờ 0 phút</span></p>
+                                <p class="text-sm">Ước tính: <span id="kwh-display" class="font-bold">0 kWh</span> nạp được (<span id="soc-gain-display" class="font-bold text-green-600">+0%</span>)</p>
+                             </div>
+                         </div>
+                     </div>
+                     <div id="confirm-footer" class="p-4 bg-white mt-auto sticky bottom-0 border-t">
+                         <button id="confirm-booking-btn" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl disabled:bg-gray-300" disabled onclick="renderConfirmScreen()">Chọn trụ sạc</button>
+                     </div>
                 </div>
             `;
+            renderChargerList('DC', stationId); // Initial call to render DC chargers
         };
         
-         const selectTimeSlot = (element, time) => {
-            document.querySelectorAll('.time-slot-btn').forEach(btn => {
-                btn.classList.remove('bg-green-600', 'text-white', 'border-green-600');
-                btn.classList.add('bg-transparent', 'text-gray-700', 'border-gray-300');
+        const renderChargerList = (type, stationId) => {
+            document.querySelectorAll('#charger-type-tabs button').forEach(btn => {
+                if (btn.innerText.includes(type)) {
+                    btn.classList.add('bg-white', 'text-green-600', 'shadow');
+                    btn.classList.remove('text-gray-600');
+                } else {
+                    btn.classList.remove('bg-white', 'text-green-600', 'shadow');
+                    btn.classList.add('text-gray-600');
+                }
             });
-            element.classList.add('bg-green-600', 'text-white', 'border-green-600');
-            appState.booking.timeSlot = time;
-            
-            const confirmBtn = document.getElementById('confirm-booking-btn');
-            confirmBtn.disabled = false;
-            confirmBtn.textContent = `Đặt chỗ lúc ${time}`;
+            const station = mockStations[stationId];
+            const filteredChargers = station.chargers.filter(c => c.type === type);
+            const chargerListHTML = filteredChargers.map(charger => {
+                const isSelected = charger.id === appState.booking.selectedChargerId;
+                const isDisabled = charger.status !== 'available';
+                const statusColor = isDisabled ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600';
+                const statusText = isDisabled ? 'Đang bận' : 'Còn trống';
+                
+                return `
+                    <div 
+                        class="p-3 rounded-lg border-2 ${isSelected ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white'} ${isDisabled ? 'opacity-50' : 'cursor-pointer'}"
+                        onclick="${isDisabled ? '' : `selectCharger('${stationId}', '${charger.id}')`}"
+                    >
+                        <div class="flex justify-between items-center">
+                            <div class="font-bold">${charger.id}</div>
+                            <div class="text-sm font-semibold px-2 py-0.5 rounded-full ${statusColor}">${statusText}</div>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">
+                            <span>${charger.power} kW</span> • <span>${charger.connector}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('charger-list-container').innerHTML = chargerListHTML || '<p class="text-center text-sm text-gray-500">Không có trụ sạc loại này.</p>';
         };
+        
+        const selectCharger = (stationId, chargerId) => {
+            appState.booking.selectedChargerId = chargerId;
+            const station = mockStations[stationId];
+            const charger = station.chargers.find(c => c.id === chargerId);
+            renderChargerList(charger.type, stationId); // Re-render to show selection
+            document.getElementById('estimation-box').classList.remove('hidden');
+            document.getElementById('confirm-booking-btn').disabled = false;
+            document.getElementById('confirm-booking-btn').textContent = 'Xác nhận đặt chỗ';
+            updateTimeSlider(); // Recalculate estimates
+        };
+        
+        function minutesToTime(minutes) {
+            const h = Math.floor(minutes / 60).toString().padStart(2, '0');
+            const m = (minutes % 60).toString().padStart(2, '0');
+            return `${h}:${m}`;
+        }
+
+        function updateTimeSlider() {
+            const slider1 = document.getElementById('slider-1');
+            const slider2 = document.getElementById('slider-2');
+            let val1 = parseInt(slider1.value);
+            let val2 = parseInt(slider2.value);
+
+            if (val1 >= val2) {
+                if (event && event.target.id === 'slider-1') {
+                    slider1.value = val2 - 1;
+                } else {
+                    slider2.value = val1 + 1;
+                }
+                val1 = parseInt(slider1.value);
+                val2 = parseInt(slider2.value);
+            }
+
+            const min = slider1.min;
+            const max = slider1.max;
+            const percent1 = ((val1 - min) / (max - min)) * 100;
+            const percent2 = ((val2 - min) / (max - min)) * 100;
+            
+            const range = document.getElementById('slider-range');
+            range.style.left = percent1 + '%';
+            range.style.width = (percent2 - percent1) + '%';
+
+            document.getElementById('start-time-display').innerText = minutesToTime(val1);
+            document.getElementById('end-time-display').innerText = minutesToTime(val2);
+            
+            const durationMinutes = val2 - val1;
+            const durationHours = Math.floor(durationMinutes / 60);
+            const durationMins = durationMinutes % 60;
+            appState.booking.chargeDuration = durationMinutes;
+            document.getElementById('duration-display').innerText = `${durationHours} giờ ${durationMins} phút`;
+            
+            // Recalculate based on selected charger
+            if (appState.booking.selectedChargerId && appState.booking.station) {
+                const charger = appState.booking.station.chargers.find(c => c.id === appState.booking.selectedChargerId);
+                if (charger) {
+                    const activeCar = appState.user.cars.find(c => c.active);
+                    const kwhPerHour = charger.power;
+                    const kwhCharged = (durationMinutes / 60) * kwhPerHour;
+                    const socGain = (kwhCharged / activeCar.batteryCapacity) * 100;
+                    
+                    document.getElementById('kwh-display').innerText = `${kwhCharged.toFixed(1)} kWh`;
+                    document.getElementById('soc-gain-display').innerText = `+${Math.round(socGain)}%`;
+                }
+            } else {
+                 document.getElementById('kwh-display').innerText = `0 kWh`;
+                 document.getElementById('soc-gain-display').innerText = `+0%`;
+            }
+        }
+
 
         const renderConfirmScreen = () => {
              const station = appState.booking.station;
-             const timeSlot = appState.booking.timeSlot;
+             const charger = station.chargers.find(c => c.id === appState.booking.selectedChargerId);
+             const startTime = minutesToTime(parseInt(document.getElementById('slider-1').value));
+             const duration = appState.booking.chargeDuration;
 
              mainContent.innerHTML = `
-                <div id="confirmScreen" class="screen flex flex-col h-full">
-                     <header class="flex items-center p-4">
-                        <button onclick="renderDetailsScreen('${Object.keys(mockStations).find(key => mockStations[key] === station)}')" class="p-2 rounded-full hover:bg-gray-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-                        </button>
-                        <h2 class="text-xl font-bold text-center flex-1">Xác nhận đặt chỗ</h2>
-                         <div class="w-8"></div>
-                    </header>
-                    <div class="p-4 flex-1">
-                        <div class="space-y-3 text-base">
-                            <div class="flex justify-between"><span class="text-gray-500">Trạm sạc:</span> <span class="font-semibold text-right">${station.name}</span></div>
-                            <div class="flex justify-between"><span class="text-gray-500">Thời gian đến:</span> <span class="font-semibold">${timeSlot}</span></div>
-                             <div class="flex justify-between"><span class="text-gray-500">Loại trụ:</span> <span class="font-semibold">Sạc nhanh DC</span></div>
-                            <div class="flex justify-between"><span class="text-gray-500">Thời gian sạc (ước tính):</span> <span class="font-semibold">${station.time} phút</span></div>
-                        </div>
-                        <div class="my-6 border-t border-dashed"></div>
-                         <div class="space-y-3 text-base">
-                            <div class="flex justify-between"><span class="text-gray-500">Chi phí (ước tính):</span> <span class="font-semibold">${station.cost.toLocaleString('vi-VN')}đ</span></div>
-                            <div class="flex justify-between"><span class="text-gray-500">Thanh toán qua:</span> <span class="font-semibold">Ví SmartWallet</span></div>
-                            <div class="flex justify-between"><span class="text-gray-500">Số dư ví:</span> <span class="font-semibold">250.000đ</span></div>
-                        </div>
-                         <div class="mt-6 text-xs text-gray-500 bg-gray-100 p-3 rounded-lg">
-                            Hệ thống sẽ giữ chỗ trong 15 phút. Vui lòng check-in đúng giờ.
-                        </div>
-                    </div>
-                     <div class="p-4 bg-white mt-auto border-t">
-                        <button class="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700" onclick="renderBookedScreen()">
-                            Xác nhận & Đặt chỗ
-                        </button>
-                    </div>
-                </div>
+                 <div id="confirmScreen" class="screen flex flex-col h-full">
+                      <header class="flex items-center p-4">
+                          <button onclick="renderDetailsScreen('${Object.keys(mockStations).find(key => mockStations[key] === station)}')" class="p-2 rounded-full hover:bg-gray-100">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                          </button>
+                          <h2 class="text-xl font-bold text-center flex-1">Xác nhận đặt chỗ</h2>
+                           <div class="w-8"></div>
+                      </header>
+                      <div class="p-4 flex-1">
+                          <div class="space-y-3 text-base">
+                              <div class="flex justify-between"><span class="text-gray-500">Trạm sạc:</span> <span class="font-semibold text-right">${station.name}</span></div>
+                              <div class="flex justify-between"><span class="text-gray-500">Trụ sạc:</span> <span class="font-semibold">${charger.id} (${charger.power}kW - ${charger.connector})</span></div>
+                              <div class="flex justify-between"><span class="text-gray-500">Thời gian đến:</span> <span class="font-semibold">${startTime}</span></div>
+                              <div class="flex justify-between"><span class="text-gray-500">Thời gian sạc:</span> <span class="font-semibold">${Math.floor(duration/60)} giờ ${duration % 60} phút</span></div>
+                          </div>
+                          <div class="my-6 border-t border-dashed"></div>
+                           <div class="space-y-3 text-base">
+                              <div class="flex justify-between"><span class="text-gray-500">Đơn giá:</span> <span class="font-semibold">${station.unitPrice.toLocaleString('vi-VN')}đ/kWh</span></div>
+                              <div class="flex justify-between"><span class="text-gray-500">Thanh toán qua:</span> <span class="font-semibold">Ví SmartWallet</span></div>
+                              <div class="flex justify-between"><span class="text-gray-500">Số dư ví:</span> <span class="font-semibold">250.000đ</span></div>
+                          </div>
+                           <div class="mt-6 text-xs text-gray-500 bg-gray-100 p-3 rounded-lg">
+                               Hệ thống sẽ giữ chỗ trong 15 phút. Vui lòng check-in đúng giờ.
+                           </div>
+                      </div>
+                       <div class="p-4 bg-white mt-auto border-t">
+                          <button class="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700" onclick="renderBookedScreen()">
+                              Xác nhận & Đặt chỗ
+                          </button>
+                      </div>
+                 </div>
              `;
         };
         
@@ -957,129 +1246,189 @@
         };
         
         const renderChargingScreen = (stationId) => {
-            if (stationId) {
-                appState.booking.station = mockStations[stationId];
+             // If a session is already running, just show the screen
+            if (appState.simulationInterval) {
+                // The interval is already updating the state, we just need to re-render the UI
+                // with the latest state and the interval will pick up the new DOM elements.
+            } else { // Start a new session
+                if (stationId) appState.booking.station = mockStations[stationId];
+                
+                appState.chargingSession = { 
+                    startTime: new Date(),
+                    startSOC: 35, // Always start simulation at 35%
+                    elapsedSeconds: 0, 
+                    energyCharged: 0, 
+                    cost: 0 
+                };
+                
+                appState.simulationInterval = setInterval(() => {
+                    const session = appState.chargingSession;
+                    const station = appState.booking.station;
+                    const activeCar = appState.user.cars.find(c => c.active);
+                    
+                    session.elapsedSeconds = (new Date() - session.startTime) / 1000;
+                    
+                    const kwhPerHour = 50; // Assume 50kW DC charger
+                    const kwhPerSecond = kwhPerHour / 3600;
+                    session.energyCharged = session.elapsedSeconds * kwhPerSecond;
+                    
+                    const socGain = (session.energyCharged / activeCar.batteryCapacity) * 100;
+                    const currentSOC = Math.min(100, session.startSOC + socGain);
+                    session.cost = session.energyCharged * station.unitPrice;
+
+                    // Update DOM elements only if they exist (i.e., the screen is visible)
+                    const socDisplay = document.getElementById('soc-display');
+                    if (socDisplay) {
+                        const secondsRemaining = Math.max(0, ((100 - currentSOC) / 100 * activeCar.batteryCapacity) / kwhPerHour * 3600);
+                        const minutesLeft = Math.floor(secondsRemaining / 60);
+                        const secondsLeft = Math.round(secondsRemaining % 60);
+                        
+                        document.getElementById('time-left-display').textContent = `${minutesLeft} phút ${secondsLeft} giây`;
+                        socDisplay.textContent = `${Math.floor(currentSOC)}%`;
+                        document.getElementById('progress-circle').style.strokeDasharray = `${currentSOC}, 100`;
+                        document.getElementById('energy-display').textContent = `${session.energyCharged.toFixed(2)} kWh`;
+                        document.getElementById('cost-display').textContent = `${Math.floor(session.cost).toLocaleString('vi-VN')}đ`;
+                    }
+
+                    if (currentSOC >= 100) {
+                        stopCharging();
+                    }
+                }, 1000);
             }
-            let chargeSeconds = 0;
-            let currentSOC = 15; // Assume SOC is low when arriving at charging station
-            let energy = 0;
-            const targetSOC = 80;
-            const totalTime = appState.booking.station.time * 60; // in seconds
-            const socPerSecond = (targetSOC - currentSOC) / totalTime;
-            const costPerSecond = appState.booking.station.cost / totalTime;
-            
+
+            const station = appState.booking.station;
+            const session = appState.chargingSession;
+            const activeCar = appState.user.cars.find(c => c.active);
+            const socGain = (session.energyCharged / activeCar.batteryCapacity) * 100;
+            const currentSOC = Math.min(100, session.startSOC + socGain);
+
+            const amenitiesHTML = (station.amenities || []).map(item => `
+                 <div class="flex items-center justify-between p-2 bg-gray-700 rounded-lg">
+                    <p class="text-sm font-medium text-gray-200">${item.name} (${item.travelTime})</p>
+                    <button class="text-xs font-semibold text-blue-400">Chỉ đường</button>
+                </div>`).join('');
+
             mainContent.innerHTML = `
-                <div id="chargingScreen" class="screen flex flex-col h-full bg-gray-900 text-white p-6">
-                    <h2 class="text-2xl font-bold text-center">Đang sạc...</h2>
+                <div id="chargingScreen" class="screen flex flex-col h-full bg-gray-900 text-white p-4">
+                     <header class="flex items-center justify-between text-center mb-4">
+                        <button onclick="renderHomeScreen()" class="p-2 rounded-full hover:bg-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                        </button>
+                        <div class="flex-1">
+                            <h2 class="text-2xl font-bold">Đang sạc...</h2>
+                            <p class="text-sm text-gray-400">${station.name}</p>
+                        </div>
+                        <div class="w-10"></div>
+                    </header>
                     <div class="flex-1 flex flex-col items-center justify-center">
                         <div class="relative w-48 h-48">
-                            <svg class="w-full h-full" viewBox="0 0 36 36">
+                            <svg class="w-full h-full" viewBox="0 0 36 36" style="transform: rotate(-90deg);">
                                 <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#4a5568" stroke-width="3"/>
                                 <path id="progress-circle" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#16A34A" stroke-width="3" stroke-dasharray="${currentSOC}, 100" stroke-linecap="round"/>
                             </svg>
                             <div class="absolute inset-0 flex flex-col items-center justify-center">
-                                <span id="soc-display" class="text-4xl font-bold">${currentSOC}%</span>
-                                <span class="text-green-400">Đang nạp</span>
+                                <span id="soc-display" class="text-5xl font-bold">${Math.floor(currentSOC)}%</span>
+                                <span class="text-sm text-green-400">Đang nạp...</span>
                             </div>
                         </div>
                     </div>
-                    <div class="bg-gray-800 p-4 rounded-xl space-y-3">
-                         <div class="flex justify-between"><span class="text-gray-400">Thời gian sạc:</span> <span id="time-display" class="font-semibold">00:00</span></div>
-                         <div class="flex justify-between"><span class="text-gray-400">Năng lượng đã nạp:</span> <span id="energy-display" class="font-semibold">0.0 kWh</span></div>
-                         <div class="flex justify-between"><span class="text-gray-400">Chi phí (tạm tính):</span> <span id="cost-display" class="font-semibold">0đ</span></div>
+                    <div class="bg-gray-800 p-4 rounded-xl space-y-3 mb-4">
+                         <div class="flex justify-between"><span class="text-gray-400">Thời gian còn lại:</span> <span id="time-left-display" class="font-semibold">--:--</span></div>
+                         <div class="flex justify-between"><span class="text-gray-400">Loại sạc:</span> <span class="font-semibold">${station.chargerType || 'DC'}</span></div>
+                         <div class="flex justify-between"><span class="text-gray-400">Năng lượng đã nạp:</span> <span id="energy-display" class="font-semibold">${session.energyCharged.toFixed(2)} kWh</span></div>
+                         <div class="border-t border-gray-700 my-2"></div>
+                         <div class="flex justify-between"><span class="text-gray-400">Đơn giá:</span> <span class="font-semibold">${station.unitPrice.toLocaleString('vi-VN')}đ/kWh</span></div>
+                         <div class="flex justify-between text-lg"><span class="text-gray-300">Chi phí tạm tính:</span> <span id="cost-display" class="font-bold text-green-400">${Math.floor(session.cost).toLocaleString('vi-VN')}đ</span></div>
                     </div>
-                    <button class="mt-6 w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700" onclick="stopCharging()">
+                    
+                    <div class="mb-4">
+                        <h4 class="font-bold text-sm text-gray-300 mb-2">Tiện ích xung quanh</h4>
+                        <div class="space-y-2">${amenitiesHTML}</div>
+                    </div>
+
+                    <button class="w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700" onclick="stopCharging()">
                         Dừng sạc
                     </button>
                 </div>
             `;
-
-            appState.simulationInterval = setInterval(() => {
-                chargeSeconds++;
-                currentSOC += socPerSecond;
-                energy += (50 / totalTime); // Mock total energy of 50kWh
-                if (currentSOC >= targetSOC) { stopCharging(); return; }
-                const minutes = Math.floor(chargeSeconds / 60).toString().padStart(2, '0');
-                const seconds = (chargeSeconds % 60).toString().padStart(2, '0');
-                document.getElementById('time-display').textContent = `${minutes}:${seconds}`;
-                document.getElementById('soc-display').textContent = `${Math.floor(currentSOC)}%`;
-                document.getElementById('progress-circle').style.strokeDasharray = `${currentSOC}, 100`;
-                document.getElementById('energy-display').textContent = `${energy.toFixed(1)} kWh`;
-                document.getElementById('cost-display').textContent = `${Math.floor(costPerSecond * chargeSeconds).toLocaleString('vi-VN')}đ`;
-            }, 100);
         };
 
         const stopCharging = () => {
-             if (appState.simulationInterval) { clearInterval(appState.simulationInterval); appState.simulationInterval = null; renderCompletedScreen(); }
+             if (appState.simulationInterval) { 
+                 clearInterval(appState.simulationInterval); 
+                 appState.simulationInterval = null; 
+                 renderCompletedScreen(); 
+             }
         };
 
         const renderCompletedScreen = () => {
              const isJourney = appState.booking.journey && appState.booking.currentStepIndex > -1;
              
              const buttonHTML = isJourney ?
-                `<button class="mt-8 w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700" onclick="resumeJourney()">
-                    Tiếp tục hành trình
-                 </button>` :
-                `<button class="mt-8 w-full bg-gray-800 text-white font-bold py-3 rounded-xl hover:bg-gray-900" onclick="renderHomeScreen()">
-                    Quay về màn hình chính
-                 </button>`;
+               `<button class="mt-8 w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700" onclick="resumeJourney()">
+                   Tiếp tục hành trình
+                </button>` :
+               `<button class="mt-8 w-full bg-gray-800 text-white font-bold py-3 rounded-xl hover:bg-gray-900" onclick="renderHomeScreen()">
+                   Quay về màn hình chính
+                </button>`;
             
-            const subtitleText = isJourney ? 'Hành trình của bạn đã sẵn sàng để tiếp tục.' : 'Bạn đã sạc đầy năng lượng.';
+             const subtitleText = isJourney ? 'Hành trình của bạn đã sẵn sàng để tiếp tục.' : 'Bạn đã sạc đầy năng lượng.';
+             const session = appState.chargingSession;
+             const durationMinutes = Math.floor(session.elapsedSeconds / 60);
+             const durationSeconds = Math.round(session.elapsedSeconds % 60);
 
              mainContent.innerHTML = `
-                <div id="completedScreen" class="screen flex flex-col items-center justify-center text-center p-6 h-full">
-                     <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
-                        <svg class="w-12 h-12 text-green-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    </div>
-                    <h2 class="text-2xl font-bold mt-4">Sạc thành công!</h2>
-                    <p class="text-gray-500 mt-1">${subtitleText}</p>
-                    <div class="bg-white p-4 rounded-xl border border-gray-200 w-full mt-8 text-left space-y-2">
-                        <h4 class="font-bold text-center mb-3">Biên lai điện tử</h4>
-                        <div class="flex justify-between text-sm"><span class="text-gray-500">Trạm sạc:</span> <span class="font-medium text-right">${appState.booking.station.name}</span></div>
-                        <div class="flex justify-between text-sm"><span class="text-gray-500">Tổng thời gian:</span> <span class="font-medium">${appState.booking.station.time} phút</span></div>
-                        <div class="flex justify-between text-sm"><span class="text-gray-500">Tổng năng lượng:</span> <span class="font-medium">50.0 kWh</span></div>
-                        <div class="border-t border-dashed my-2"></div>
-                        <div class="flex justify-between text-lg"><span class="font-medium">Tổng chi phí:</span> <span class="font-bold text-green-600">${appState.booking.station.cost.toLocaleString('vi-VN')}đ</span></div>
-                        <p class="text-xs text-center text-gray-400 pt-2">Đã thanh toán qua SmartWallet.</p>
-                    </div>
-                    ${buttonHTML}
-                </div>
+                 <div id="completedScreen" class="screen flex flex-col items-center justify-center text-center p-6 h-full">
+                      <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+                          <svg class="w-12 h-12 text-green-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                      </div>
+                      <h2 class="text-2xl font-bold mt-4">Sạc thành công!</h2>
+                      <p class="text-gray-500 mt-1">${subtitleText}</p>
+                      <div class="bg-white p-4 rounded-xl border border-gray-200 w-full mt-8 text-left space-y-2">
+                          <h4 class="font-bold text-center mb-3">Biên lai điện tử</h4>
+                          <div class="flex justify-between text-sm"><span class="text-gray-500">Trạm sạc:</span> <span class="font-medium text-right">${appState.booking.station.name}</span></div>
+                          <div class="flex justify-between text-sm"><span class="text-gray-500">Tổng thời gian:</span> <span class="font-medium">${durationMinutes} phút ${durationSeconds} giây</span></div>
+                          <div class="flex justify-between text-sm"><span class="text-gray-500">Tổng năng lượng:</span> <span class="font-medium">${session.energyCharged.toFixed(2)} kWh</span></div>
+                          <div class="border-t border-dashed my-2"></div>
+                          <div class="flex justify-between text-lg"><span class="font-medium">Tổng chi phí:</span> <span class="font-bold text-green-600">${Math.floor(session.cost).toLocaleString('vi-VN')}đ</span></div>
+                          <p class="text-xs text-center text-gray-400 pt-2">Đã thanh toán qua SmartWallet.</p>
+                      </div>
+                      ${buttonHTML}
+                 </div>
              `;
              
-             // Reset booking state if it was a nearby charge or journey finished
+             appState.chargingSession = { startTime: null, startSOC: 0, elapsedSeconds: 0, energyCharged: 0, cost: 0 };
              if (!isJourney) {
-                appState.booking = {
-                    journey: null, station: null, timeSlot: null, currentStepIndex: -1,
-                };
+                 appState.booking = { journey: null, station: null, timeSlot: null, currentStepIndex: -1, };
              }
         };
 
         const renderJourneyCompleteScreen = () => {
              mainContent.innerHTML = `
-                 <div id="journeyCompleteScreen" class="screen flex flex-col items-center justify-center text-center p-6 h-full">
-                     <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-                         <svg class="w-12 h-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11.5 10 14.5 17 7.5"/><path d="M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19z"/></svg>
-                    </div>
-                    <h2 class="text-2xl font-bold mt-4">Hoàn thành chuyến đi!</h2>
-                    <p class="text-gray-500 mt-1">Bạn đã đến ${appState.request.destination} thành công.</p>
-                    
-                    <div class="w-full mt-8">
-                        <h3 class="font-bold mb-3">Đánh giá trải nghiệm</h3>
-                        <div id="rating-stars" class="flex justify-center items-center text-4xl text-gray-300">
-                            <span class="rating-star" onmouseover="rate(1)" onclick="setRating(1)">★</span>
-                            <span class="rating-star" onmouseover="rate(2)" onclick="setRating(2)">★</span>
-                            <span class="rating-star" onmouseover="rate(3)" onclick="setRating(3)">★</span>
-                            <span class="rating-star" onmouseover="rate(4)" onclick="setRating(4)">★</span>
-                            <span class="rating-star" onmouseover="rate(5)" onclick="setRating(5)">★</span>
-                        </div>
-                    </div>
+                  <div id="journeyCompleteScreen" class="screen flex flex-col items-center justify-center text-center p-6 h-full">
+                       <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+                           <svg class="w-12 h-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11.5 10 14.5 17 7.5"/><path d="M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19z"/></svg>
+                       </div>
+                       <h2 class="text-2xl font-bold mt-4">Hoàn thành chuyến đi!</h2>
+                       <p class="text-gray-500 mt-1">Bạn đã đến ${appState.request.destination} thành công.</p>
+                       
+                       <div class="w-full mt-8">
+                           <h3 class="font-bold mb-3">Đánh giá trải nghiệm</h3>
+                           <div id="rating-stars" class="flex justify-center items-center text-4xl text-gray-300">
+                               <span class="rating-star" onmouseover="rate(1)" onclick="setRating(1)">★</span>
+                               <span class="rating-star" onmouseover="rate(2)" onclick="setRating(2)">★</span>
+                               <span class="rating-star" onmouseover="rate(3)" onclick="setRating(3)">★</span>
+                               <span class="rating-star" onmouseover="rate(4)" onclick="setRating(4)">★</span>
+                               <span class="rating-star" onmouseover="rate(5)" onclick="setRating(5)">★</span>
+                           </div>
+                       </div>
 
-                    <button class="mt-8 w-full bg-gray-800 text-white font-bold py-3 rounded-xl hover:bg-gray-900" onclick="renderHomeScreen()">
-                        Về trang chủ
-                    </button>
-                 </div>
-            `;
-            appState.booking = { journey: null, station: null, timeSlot: null, currentStepIndex: -1, };
+                       <button class="mt-8 w-full bg-gray-800 text-white font-bold py-3 rounded-xl hover:bg-gray-900" onclick="renderHomeScreen()">
+                           Về trang chủ
+                       </button>
+                  </div>
+             `;
+             appState.booking = { journey: null, station: null, timeSlot: null, currentStepIndex: -1, };
         };
 
         const rate = (stars) => {
@@ -1090,9 +1439,8 @@
             });
         };
         const setRating = (stars) => {
-            // Here you would normally save the rating
             console.log(`User rated ${stars} stars.`);
-            rate(stars); // Make it permanent on click
+            rate(stars);
             document.getElementById('rating-stars').onmouseleave = null;
         }
 
@@ -1115,25 +1463,30 @@
 
             mainContent.innerHTML = `
                  <div id="historyScreen" class="screen flex flex-col h-full relative">
-                     <header class="p-4">
-                        <h2 class="text-2xl font-bold text-gray-800">Hoạt động</h2>
-                        <div class="flex mt-4 border-b">
-                            ${tabsHTML}
-                        </div>
-                    </header>
-                    <div id="history-content" class="flex-1 overflow-y-auto p-4 space-y-3">
-                       <!-- Content will be rendered here -->
-                    </div>
+                      <header class="p-4">
+                          <h2 class="text-2xl font-bold text-gray-800">Hoạt động</h2>
+                          <div class="flex mt-4 border-b">
+                              ${tabsHTML}
+                          </div>
+                      </header>
+                      <div id="history-content" class="flex-1 overflow-y-auto p-4 space-y-3">
+                         <!-- Content will be rendered here -->
+                      </div>
                  </div>
             `;
             renderHistoryContent(appState.history.activeTab);
         };
 
+        const startSampleCharging = () => {
+            const sampleStationId = 'st_cl'; 
+            renderChargingScreen(sampleStationId);
+        };
+
+
         const renderHistoryContent = (tab) => {
             appState.history.activeTab = tab;
             const contentEl = document.getElementById('history-content');
             
-            // Re-render tabs to update active state
             const historyTabs = {
                 charging: { color: 'green-600' },
                 upcoming: { color: 'blue-500' },
@@ -1153,27 +1506,31 @@
 
 
             if (tab === 'charging') {
-                contentEl.innerHTML = `
-                    <div class="bg-white p-4 rounded-lg border-l-4 border-green-500 shadow-sm cursor-pointer" onclick="renderChargingScreen('st_nct')">
+                 contentEl.innerHTML = (appState.simulationInterval) ? `
+                    <div class="bg-white p-4 rounded-lg border-l-4 border-green-500 shadow-sm cursor-pointer" onclick="renderChargingScreen()">
                         <div class="flex items-start gap-4">
                              <svg class="w-16 text-gray-800 -mt-2" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M 10 70 C 5 50, 5 30, 30 30 L 170 30 C 195 30, 195 50, 190 70 L 180 90 L 20 90 Z" fill="#e5e7eb" stroke="#9ca3af" stroke-width="2"/>
-                                <rect x="30" y="45" width="60" height="25" rx="5" fill="#d1d5db" />
-                                <rect x="110" y="45" width="60" height="25" rx="5" fill="#d1d5db" />
-                                <circle cx="40" cy="90" r="10" fill="#4b5563" />
-                                <circle cx="160" cy="90" r="10" fill="#4b5563" />
-                                <path d="M 100 20 L 105 10 L 110 20 L 105 30 Z" fill="#16a34a"/>
-                            </svg>
+                                 <path d="M 10 70 C 5 50, 5 30, 30 30 L 170 30 C 195 30, 195 50, 190 70 L 180 90 L 20 90 Z" fill="#e5e7eb" stroke="#9ca3af" stroke-width="2"/>
+                                 <rect x="30" y="45" width="60" height="25" rx="5" fill="#d1d5db" /><rect x="110" y="45" width="60" height="25" rx="5" fill="#d1d5db" />
+                                 <circle cx="40" cy="90" r="10" fill="#4b5563" /><circle cx="160" cy="90" r="10" fill="#4b5563" />
+                                 <path d="M 100 20 L 105 10 L 110 20 L 105 30 Z" fill="#16a34a"/>
+                             </svg>
                             <div class="flex-1">
-                                <p class="font-semibold">EBOOST Vincom NCT</p>
-                                <p class="text-sm font-bold text-green-600">45% • Còn 15 phút</p>
+                                <p class="font-semibold">${appState.booking.station.name}</p>
+                                <p class="text-sm font-bold text-green-600">Đang sạc...</p>
                                 <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                                    <div class="bg-green-600 h-1.5 rounded-full" style="width: 45%"></div>
+                                    <div class="bg-green-600 h-1.5 rounded-full" style="width: 50%"></div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>` 
+                    : 
+                    `<div class="text-center text-gray-500 mt-10">
+                        <p>Không có phiên sạc nào đang diễn ra.</p>
+                        <button class="mt-4 bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg" onclick="startSampleCharging()">
+                            Xem mẫu phiên sạc
+                        </button>
+                    </div>`;
             } else if (tab === 'upcoming') {
                 contentEl.innerHTML = `
                     <div class="bg-white p-4 rounded-lg border-l-4 border-blue-500 shadow-sm cursor-pointer" onclick="renderHistoryDetailModal('upcoming', 'st_vinh')">
@@ -1253,7 +1610,7 @@
                         <div class="flex justify-between"><span class="text-gray-500">Thời gian:</span> <span class="font-semibold">45 phút</span></div>
                         <div class="flex justify-between"><span class="text-gray-500">Năng lượng:</span> <span class="font-semibold">50.0 kWh</span></div>
                          <div class="border-t my-2"></div>
-                        <div class="flex justify-between"><span class="text-gray-500">Tổng chi phí:</span> <span class="font-bold text-lg text-red-600">${station.cost.toLocaleString('vi-VN')}đ</span></div>
+                        <div class="flex justify-between"><span class="text-gray-500">Tổng chi phí:</span> <span class="font-bold text-lg text-red-600">${(station.cost || 110000).toLocaleString('vi-VN')}đ</span></div>
                     </div>
                     <button class="w-full mt-4 bg-gray-200 font-bold py-2 rounded-lg">Xem hóa đơn</button>
                 `;
@@ -1262,13 +1619,13 @@
             modal.innerHTML = `
                 <div class="w-full bg-white p-6 rounded-t-3xl shadow-lg modal-enter" onclick="event.stopPropagation()">
                      <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-xl font-bold">${station.name}</h3>
-                            <p class="text-sm text-gray-500">Chi tiết phiên sạc</p>
-                        </div>
-                        <button onclick="closeHistoryDetailModal()" class="text-gray-400 text-2xl">&times;</button>
-                    </div>
-                    ${contentHTML}
+                         <div>
+                             <h3 class="text-xl font-bold">${station.name}</h3>
+                             <p class="text-sm text-gray-500">Chi tiết phiên sạc</p>
+                         </div>
+                         <button onclick="closeHistoryDetailModal()" class="text-gray-400 text-2xl">&times;</button>
+                     </div>
+                     ${contentHTML}
                 </div>
             `;
             document.querySelector('#historyScreen').appendChild(modal);
@@ -1281,40 +1638,78 @@
             }
         };
 
+        const renderChatbotScreen = () => {
+             appState.currentScreen = 'chatbot';
+             updateNavActiveState('chatbot');
+             bottomNav.classList.remove('hidden');
+             mainContent.innerHTML = `
+                 <div id="chatbotScreen" class="screen flex flex-col h-full">
+                      <header class="p-4">
+                          <h2 class="text-2xl font-bold text-gray-800">Trợ lý AI & Hỏi đáp</h2>
+                      </header>
+                      <div class="flex-1 overflow-y-auto px-4 space-y-3">
+                         <p class="text-sm text-gray-600">Chọn một câu hỏi thường gặp hoặc đặt câu hỏi cho trợ lý AI của chúng tôi.</p>
+                         <div class="space-y-2">
+                            <details class="bg-white p-3 rounded-lg border cursor-pointer">
+                                <summary class="font-semibold text-gray-800">Làm thế nào để tìm trạm sạc gần nhất?</summary>
+                                <p class="text-sm text-gray-600 mt-2 border-t pt-2">Để tìm trạm sạc gần nhất, hãy vào 'Trang chủ' và nhấn vào nút 'Tìm trạm sạc ngay'. Ứng dụng sẽ tự động hiển thị các trạm gần bạn trên bản đồ.</p>
+                            </details>
+                            <details class="bg-white p-3 rounded-lg border cursor-pointer">
+                                <summary class="font-semibold text-gray-800">Tôi có thể đặt trước trạm sạc không?</summary>
+                                <p class="text-sm text-gray-600 mt-2 border-t pt-2">Có. Sau khi chọn một trạm sạc, bạn có thể chọn 'Đặt chỗ' và chọn khung thời gian bạn muốn đến sạc. Hệ thống sẽ giữ chỗ cho bạn.</p>
+                            </details>
+                             <details class="bg-white p-3 rounded-lg border cursor-pointer">
+                                <summary class="font-semibold text-gray-800">Làm cách nào để thanh toán?</summary>
+                                <p class="text-sm text-gray-600 mt-2 border-t pt-2">Mọi thanh toán đều được thực hiện qua 'Ví SmartWallet' trong ứng dụng. Bạn có thể nạp tiền vào ví bằng thẻ ngân hàng hoặc các phương thức thanh toán điện tử khác. Chi phí sẽ tự động trừ sau mỗi phiên sạc.</p>
+                            </details>
+                             <details class="bg-white p-3 rounded-lg border cursor-pointer">
+                                <summary class="font-semibold text-gray-800">Điểm TrustScore là gì?</summary>
+                                <p class="text-sm text-gray-600 mt-2 border-t pt-2">TrustScore là điểm uy tín của bạn. Điểm số này được xây dựng dựa trên lịch sử sạc và việc bạn có đến đúng giờ đã đặt hay không. TrustScore cao sẽ giúp bạn nhận được nhiều ưu đãi, ví dụ như đặt chỗ không cần cọc.</p>
+                            </details>
+                         </div>
+                      </div>
+                      <div class="p-4 bg-white border-t">
+                        <input type="text" placeholder="Hỏi trợ lý AI..." class="w-full p-3 bg-gray-100 border rounded-lg">
+                      </div>
+                 </div>
+             `;
+        };
+
         const renderWalletScreen = () => {
             appState.currentScreen = 'wallet';
             updateNavActiveState('wallet');
             bottomNav.classList.remove('hidden');
             mainContent.innerHTML = `
                  <div id="walletScreen" class="screen p-4">
-                     <header class="flex items-center mb-6">
-                        <h2 class="text-2xl font-bold text-gray-800">Ví SmartWallet</h2>
-                    </header>
-                    <div class="bg-green-600 text-white p-6 rounded-2xl">
-                        <p class="opacity-80">Số dư hiện tại</p>
-                        <p class="text-4xl font-bold">250.000đ</p>
-                        <button class="mt-4 bg-white/20 px-4 py-2 rounded-full font-semibold">Nạp tiền</button>
-                    </div>
-                    <h3 class="font-bold mt-6 mb-2">Giao dịch gần đây</h3>
-                    <div class="space-y-3">
-                        <div class="bg-white p-4 rounded-lg border flex justify-between items-center">
-                            <div>
-                                <p class="font-semibold">Sạc tại ECharge Vinh</p>
-                                <p class="text-sm text-gray-500">15/10/2025</p>
-                            </div>
-                            <p class="font-bold text-red-600">-110.000đ</p>
-                        </div>
-                         <div class="bg-white p-4 rounded-lg border flex justify-between items-center">
-                            <div>
-                                <p class="font-semibold">Nạp tiền vào ví</p>
-                                <p class="text-sm text-gray-500">10/10/2025</p>
-                            </div>
-                            <p class="font-bold text-green-600">+500.000đ</p>
-                        </div>
-                    </div>
+                      <header class="flex items-center mb-6">
+                          <h2 class="text-2xl font-bold text-gray-800">Ví SmartWallet</h2>
+                      </header>
+                      <div class="bg-green-600 text-white p-6 rounded-2xl">
+                          <p class="opacity-80">Số dư hiện tại</p>
+                          <p class="text-4xl font-bold">250.000đ</p>
+                          <button class="mt-4 bg-white/20 px-4 py-2 rounded-full font-semibold">Nạp tiền</button>
+                      </div>
+                      <h3 class="font-bold mt-6 mb-2">Giao dịch gần đây</h3>
+                      <div class="space-y-3">
+                          <div class="bg-white p-4 rounded-lg border flex justify-between items-center">
+                              <div>
+                                  <p class="font-semibold">Sạc tại ECharge Vinh</p>
+                                  <p class="text-sm text-gray-500">15/10/2025</p>
+                              </div>
+                              <p class="font-bold text-red-600">-110.000đ</p>
+                          </div>
+                           <div class="bg-white p-4 rounded-lg border flex justify-between items-center">
+                              <div>
+                                  <p class="font-semibold">Nạp tiền vào ví</p>
+                                  <p class="text-sm text-gray-500">10/10/2025</p>
+                              </div>
+                              <p class="font-bold text-green-600">+500.000đ</p>
+                          </div>
+                      </div>
                  </div>
             `;
         };
+
         const renderProfileScreen = () => {
             appState.currentScreen = 'profile';
             updateNavActiveState('profile');
@@ -1323,31 +1718,79 @@
 
             mainContent.innerHTML = `
                  <div id="profileScreen" class="screen p-4">
-                     <header class="flex items-center mb-6">
-                        <h2 class="text-2xl font-bold text-gray-800">Hồ sơ</h2>
-                    </header>
-                    <div class="flex items-center space-x-4">
-                        <div class="w-20 h-20 bg-gray-200 rounded-full"></div>
-                        <div>
-                            <h3 class="text-xl font-bold">${appState.user.name}</h3>
-                            <p class="text-gray-500">${activeCar ? activeCar.name : 'Chưa có xe'}</p>
-                        </div>
-                    </div>
-                    <div class="mt-6 bg-white p-4 rounded-lg border">
-                        <div class="flex justify-between items-center">
-                            <p class="font-semibold">TrustScore</p>
-                            <p class="font-bold text-green-600 text-lg">95 / 100</p>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-1">Điểm số cao giúp bạn đặt chỗ không cần cọc.</p>
-                    </div>
-                     <div class="mt-6 space-y-2">
-                         <button class="w-full text-left bg-white p-4 rounded-lg border flex justify-between items-center" onclick="renderEditProfileScreen()"><span>Thông tin cá nhân</span> <span>&gt;</span></button>
-                         <button class="w-full text-left bg-white p-4 rounded-lg border flex justify-between items-center" onclick="renderMyCarsScreen()"><span>Xe của tôi</span> <span>&gt;</span></button>
-                         <button class="w-full text-left bg-white p-4 rounded-lg border flex justify-between items-center"><span>Cài đặt</span> <span>&gt;</span></button>
-                         <button class="w-full text-left bg-white p-4 rounded-lg border text-red-600 font-semibold">Đăng xuất</button>
-                    </div>
+                      <header class="flex items-center mb-6">
+                          <h2 class="text-2xl font-bold text-gray-800">Hồ sơ</h2>
+                      </header>
+                      <div class="flex items-center space-x-4">
+                          <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden"><img src="https://placehold.co/80x80/EFEFEF/7B7B7B?text=A" alt="Avatar"></div>
+                          <div>
+                              <h3 class="text-xl font-bold">${appState.user.name}</h3>
+                              <p class="text-gray-500">${activeCar ? activeCar.name : 'Chưa có xe'}</p>
+                          </div>
+                      </div>
+                      <div class="mt-6 bg-white p-4 rounded-lg border">
+                          <div class="flex justify-between items-center">
+                              <p class="font-semibold">TrustScore</p>
+                              <p class="font-bold text-green-600 text-lg">95 / 100</p>
+                          </div>
+                          <p class="text-xs text-gray-500 mt-1">Điểm số cao giúp bạn đặt chỗ không cần cọc.</p>
+                      </div>
+                       <div class="mt-6 space-y-2">
+                           <button class="w-full text-left bg-white p-4 rounded-lg border flex justify-between items-center" onclick="renderEditProfileScreen()"><span>Thông tin cá nhân</span> <span class="text-gray-400">&gt;</span></button>
+                           <button class="w-full text-left bg-white p-4 rounded-lg border flex justify-between items-center" onclick="renderMyCarsScreen()"><span>Xe của tôi</span> <span class="text-gray-400">&gt;</span></button>
+                           <button class="w-full text-left bg-white p-4 rounded-lg border flex justify-between items-center" onclick="renderMyImpactScreen()"><span>Tác động của tôi</span> <span class="text-gray-400">&gt;</span></button>
+                           <button class="w-full text-left bg-white p-4 rounded-lg border flex justify-between items-center" onclick="renderInviteScreen()"><span>Mời bạn bè</span> <span class="text-gray-400">&gt;</span></button>
+                           <button class="w-full text-left bg-white p-4 rounded-lg border text-red-600 font-semibold mt-4">Đăng xuất</button>
+                       </div>
                  </div>
             `;
+        };
+
+        const renderMyImpactScreen = () => {
+            bottomNav.classList.add('hidden');
+            mainContent.innerHTML = `
+                 <div id="myImpactScreen" class="screen flex flex-col">
+                      <header class="flex items-center p-4">
+                          <button onclick="renderProfileScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+                          <h2 class="text-xl font-bold text-center flex-1">Tác động của tôi</h2>
+                          <div class="w-8"></div>
+                      </header>
+                      <div class="flex-1 p-4 flex flex-col items-center justify-center text-center">
+                        <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-green-600"><path d="M12 22c-2 0-3-1-3-3 0-2 1-3 3-3s3 1 3 3c0 2-1 3-3 3z"/><path d="M12 16V4a2 2 0 0 0-2-2H8"/><path d="M12 10h4a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-4"/><path d="M12 4a2 2 0 0 1 2-2h2"/></svg>
+                        </div>
+                        <p class="mt-4 text-gray-600">Bằng việc sử dụng xe điện, bạn đã giúp giảm thiểu</p>
+                        <p class="text-4xl font-bold text-green-600 my-2">1,234 kg</p>
+                        <p class="font-semibold text-lg">khí thải CO2 ra môi trường.</p>
+                        <p class="text-sm text-gray-500 mt-2">Tương đương với việc trồng 56 cây xanh!</p>
+                      </div>
+                 </div>
+            `;
+        };
+
+        const renderInviteScreen = () => {
+             bottomNav.classList.add('hidden');
+             mainContent.innerHTML = `
+                 <div id="inviteScreen" class="screen flex flex-col">
+                      <header class="flex items-center p-4">
+                          <button onclick="renderProfileScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+                          <h2 class="text-xl font-bold text-center flex-1">Mời bạn bè</h2>
+                          <div class="w-8"></div>
+                      </header>
+                       <div class="flex-1 p-4 flex flex-col items-center justify-center text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                        <h3 class="text-2xl font-bold mt-4">Mời bạn bè, nhận quà hay!</h3>
+                        <p class="mt-2 text-gray-600">Chia sẻ mã giới thiệu của bạn. Bạn bè của bạn sẽ nhận được <span class="font-bold text-green-600">phiếu giảm giá 50%</span> cho lần sạc đầu tiên, và bạn sẽ nhận được 20.000đ vào ví!</p>
+                        
+                        <div class="my-6 w-full">
+                            <p class="text-sm text-gray-500">Mã của bạn</p>
+                            <div class="mt-1 bg-gray-100 border-2 border-dashed rounded-lg p-3 text-2xl font-bold tracking-widest">SMART123</div>
+                        </div>
+
+                        <button class="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700">Chia sẻ mã</button>
+                       </div>
+                 </div>
+             `;
         };
 
         const renderEditProfileScreen = () => {
@@ -1428,4 +1871,6 @@
     </script>
 </body>
 </html>
+
+
 
