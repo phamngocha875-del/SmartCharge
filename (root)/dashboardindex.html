@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCharge Dashboard (GO-TO-U Clone - User Version)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* --- Cài đặt chung & Biến (Theo GO-TO-U) --- */
+        :root {
+            --bg-sidebar: #1DB954; /* Màu xanh lá của GO-TO-U */
+            --bg-main: #F4F7FA;
+            --bg-card: #FFFFFF;
+            --text-dark: #212529;
+            --text-secondary: #6C757D;
+            --border-color: #E9ECEF;
+            
+            /* [MỚI] Màu Trạng thái Phiên sạc */
+            --color-completed: #1DB954;   /* Hoàn thành (Xanh lá) */
+            --bg-completed: #E9F8EE;
+            --color-planned: #007BFF;     /* Đã đặt (Xanh dương) */
+            --bg-planned: #E6F2FF;
+            --color-inprogress: #0056b3; /* Đang sạc (Xanh đậm) */
+            --bg-inprogress: #CCE5FF;
+            --color-noshow: #DC3545;      /* No-Show (Đỏ) */
+            --bg-noshow: #F8D7DA;
+
+             /* Màu sắc khác */
+             --color-green: #1DB954;
+            --color-orange: #FD7E14;
+            --color-blue: #007BFF;
+            --color-yellow: #FFC107;
+            --color-teal: #20C997; /* CO2 */
+            --color-car-gray: #D0D0D0;
+            --color-percent-green: #28a745;
+            --color-percent-red: #DC3545;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 0; background-color: var(--bg-main);
+            color: var(--text-dark); display: flex; height: 100vh; overflow: hidden;
+        }
+        h1, h2, h3, h4, h5 { margin: 0 0 16px 0; font-weight: 600; }
+        ul { list-style: none; padding: 0; margin: 0; }
+        button { cursor: pointer; font-family: inherit; }
+
+        /* --- Thanh Điều Hướng (Sidebar) --- */
+        .sidebar {
+            width: 240px; background-color: var(--bg-sidebar); padding: 24px;
+            flex-shrink: 0; height: 100vh; overflow-y: auto; box-sizing: border-box;
+        }
+        .sidebar .logo {
+            font-size: 1.5rem; font-weight: bold; color: var(--bg-card);
+            text-align: center; margin-bottom: 32px;
+        }
+        .sidebar nav li {
+            padding: 14px 18px; margin-bottom: 8px; border-radius: 8px; cursor: pointer;
+            font-weight: 500; color: rgba(255, 255, 255, 0.8);
+            transition: background-color 0.2s, color 0.2s;
+            display: flex; align-items: center;
+        }
+        .sidebar nav li i { margin-right: 12px; width: 20px; text-align: center; }
+        .sidebar nav li:hover { background-color: rgba(255, 255, 255, 0.1); color: var(--bg-card); }
+        .sidebar nav li.active { background-color: var(--bg-card); color: var(--bg-sidebar); font-weight: bold; }
+
+        /* --- Khu vực Nội dung chính --- */
+        .main-content {
+            flex-grow: 1; padding: 32px; overflow-y: auto;
+            height: 100vh; box-sizing: border-box;
+        }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px; margin-bottom: 24px;
+        }
+        .card {
+            background-color: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 24px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px;
+        }
+        
+        /* --- GIAO DIỆN TAB "DASHBOARD" --- */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card { padding: 20px; }
+        .stat-card .label { font-size: 1rem; color: var(--text-secondary); margin-bottom: 8px; display: flex; align-items: center; }
+        .stat-card .label i { margin-right: 8px; font-size: 1.2rem; }
+        .stat-card .value { font-size: 2.2rem; font-weight: bold; color: var(--text-dark); }
+        .stat-card .value small { font-size: 1.2rem; color: var(--text-secondary); }
+        .stat-card.co2-card { background-color: var(--color-teal); color: white; }
+        .stat-card.co2-card .label, .stat-card.co2-card .value { color: white; }
+        
+        .charging-header { display: flex; align-items: center; margin-bottom: 20px; }
+        .charging-header h3 { margin: 0 20px 0 0; }
+
+        .charger-grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+        .charger-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden; }
+        .charger-card-header { padding: 10px 15px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+        .charger-card-header.orange { background-color: var(--color-orange); color: white; }
+        .charger-card-header.green { background-color: var(--color-green); color: white; }
+        .charger-card-body { padding: 20px; text-align: center; }
+        
+        .car-visual { width: 120px; height: 220px; background-color: var(--color-car-gray); border-radius: 60px 60px 30px 30px; margin: 10px auto 20px auto; position: relative; overflow: hidden; border: 3px solid #B0B0B0; }
+        .car-fill { position: absolute; bottom: 0; left: 0; right: 0; background-color: var(--color-green); height: 0%; transition: height 0.5s ease-out; }
+        .car-overlay { position: relative; z-index: 2; color: var(--text-dark); text-align: center; padding-top: 40px; }
+        .car-overlay h5 { font-size: 1rem; margin: 0; color: #555; }
+        .car-overlay h4 { font-size: 1.5rem; margin: 5px 0; }
+        .car-overlay h4 small { font-size: 1rem; }
+        .car-overlay h3 { font-size: 2rem; margin-top: 20px; font-weight: 800; color: var(--text-dark); }
+        
+        .available-status { height: 253px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .available-status i { font-size: 3rem; color: var(--color-green); }
+        .available-status h4 { font-size: 1.2rem; color: var(--color-green); margin: 15px 0 5px 0; }
+        .available-status p { font-size: 0.9rem; color: var(--text-secondary); margin: 0; }
+        
+        .charger-card-footer { background-color: #F8F9FA; border-top: 1px solid var(--border-color); padding: 15px; text-align: center; }
+        .charger-card-footer h5 { font-size: 1rem; margin: 0 0 4px 0; }
+        .charger-card-footer p { font-size: 0.9rem; color: var(--text-secondary); margin: 0; }
+        
+        /* --- GIAO DIỆN TAB "LỊCH ĐẶT CHỖ" (Giữ nguyên) --- */
+        .schedule-legend { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; }
+        .legend-item { display: flex; align-items: center; font-size: 0.9rem; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 8px; }
+        .schedule-view { display: flex; flex-direction: row; }
+        .schedule-timeline-time { width: 80px; flex-shrink: 0; }
+        .schedule-timeline-time .time-slot { height: 90px; border-top: 1px dashed var(--border-color); padding-top: 5px; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; text-align: right; padding-right: 10px; box-sizing: border-box; }
+        .schedule-timeline-time .time-slot:first-child { border-top: none; }
+        .schedule-timeline-container { flex-grow: 1; overflow-x: auto; border-left: 2px solid var(--border-color); }
+        .schedule-header { display: flex; border-bottom: 2px solid var(--border-color); background-color: #fcfcfc; position: sticky; top: 0; z-index: 10; }
+        .schedule-header .charger-column-header { width: 250px; flex-shrink: 0; padding: 16px; border-right: 1px solid var(--border-color); }
+        .charger-column-header h5 { margin: 0 0 4px 0; font-size: 1rem; }
+        .charger-column-header .charger-id { font-size: 0.85rem; color: var(--text-secondary); }
+        .schedule-body { display: flex; position: relative; }
+        .charger-column { width: 250px; flex-shrink: 0; height: calc(90px * 8); border-right: 1px dashed var(--border-color); position: relative; } /* Tăng chiều cao lên 8 giờ */
+        .booking-block { position: absolute; left: 10px; right: 10px; border-radius: 8px; padding: 10px; box-sizing: border-box; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; border-left: 5px solid; margin-bottom: 5px; /* BUFFER TIME */ }
+        .booking-car { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; display: flex; align-items: center; }
+        .booking-car i { margin-right: 6px; }
+        .booking-details { font-size: 0.85rem; color: var(--text-secondary); margin-left: 20px; }
+        .booking-block.status-completed { background-color: var(--bg-completed); border-color: var(--color-completed); color: var(--color-completed); }
+        .booking-block.status-planned { background-color: var(--bg-planned); border-color: var(--color-planned); color: var(--color-planned); }
+        .booking-block.status-charging { background-color: var(--bg-inprogress); border-color: var(--color-inprogress); color: var(--color-inprogress); }
+        .booking-block.status-no-show { background-color: var(--bg-noshow); border-color: var(--color-noshow); color: var(--color-noshow); }
+        
+        /* --- GIAO DIỆN TAB "PHÂN TÍCH AI" & "DOANH THU" (Statistics) --- */
+        .stats-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
+        .stats-kpi-card { padding: 20px; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--bg-card); }
+        .stats-kpi-card .label { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 8px; }
+        .stats-kpi-card .value { font-size: 1.8rem; font-weight: 600; margin-bottom: 8px; }
+        .stats-kpi-card .percent-change { font-weight: 600; font-size: 0.9rem; }
+        .percent-change.green { color: var(--color-percent-green); }
+        .percent-change.red { color: var(--color-percent-red); }
+        
+        .chart-container { width: 100%; height: 300px; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 24px; box-sizing: border-box; display: flex; align-items: flex-end; gap: 1%; }
+        .bar-stack { flex-grow: 1; display: flex; flex-direction: column-reverse; border-radius: 5px 5px 0 0; overflow: hidden; }
+        .stack-1 { background-color: var(--color-green); transition: height 0.3s; }
+        .stack-2 { background-color: var(--color-yellow); transition: height 0.3s; }
+
+        /* --- Bảng dữ liệu (Dùng cho Quản lý trụ sạc & Doanh thu) --- */
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .data-table th, .data-table td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .data-table th { background-color: var(--bg-main); color: var(--text-secondary); font-size: 0.9rem; text-transform: uppercase; }
+        .data-table td { color: var(--text-dark); }
+        .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .status-dot.online { background-color: var(--color-percent-green); }
+        .status-dot.offline { background-color: var(--color-percent-red); }
+        .btn { padding: 8px 12px; border: none; border-radius: 6px; font-weight: 500; }
+        .btn-secondary { background-color: var(--border-color); color: var(--text-dark); }
+
+        /* --- MODAL POPUP (Giữ nguyên) --- */
+        .modal-backdrop { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: var(--bg-card); margin: 10% auto; width: 90%; max-width: 700px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); animation: fadeIn 0.3s; }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { margin: 0; font-size: 1.5rem; }
+        .modal-header .modal-close { font-size: 1.8rem; font-weight: bold; cursor: pointer; color: var(--text-secondary); }
+        .modal-tabs { display: flex; padding: 20px 24px 0 24px; }
+        .tab-btn { padding: 10px 16px; border: none; background: none; font-size: 1rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: var(--text-dark); border-bottom-color: var(--color-planned); }
+        .modal-body { padding: 24px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .info-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .info-item { text-align: left; }
+        .info-item i { font-size: 1.5rem; color: var(--text-secondary); margin-bottom: 12px; }
+        .info-item .label { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 4px; }
+        .info-item .value { font-size: 1.1rem; font-weight: 600; }
+        .speed-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; align-items: center; }
+        .speed-stats .info-item { margin-bottom: 20px; }
+        .speed-graph-placeholder { height: 200px; background-color: #f0f0f0; border: 1px dashed #ccc; display: grid; place-items: center; color: #999; border-radius: 8px; font-style: italic; }
+        .modal-footer-bar { background-color: var(--bg-main); padding: 16px 24px; border-top: 1px solid var(--border-color); border-radius: 0 0 12px 12px; display: flex; justify-content: space-between; align-items: center; }
+        .modal-footer-bar .res-id span { font-weight: 600; color: var(--text-dark); }
+        .payment-status { padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+        .payment-status.success { background-color: var(--bg-completed); color: var(--color-completed); }
+        .payment-status.pending { background-color: var(--bg-noshow); color: var(--color-noshow); }
+        @keyframes fadeIn { from {opacity: 0; transform: translateY(-20px);} to {opacity: 1; transform: translateY(0);} }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; height: auto; overflow-y: auto; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); }
+            .sidebar nav ul { display: flex; flex-direction: row; overflow-x: auto; }
+            .sidebar nav li { margin-bottom: 0; margin-right: 8px; flex-shrink: 0; }
+            .main-content { padding: 16px; height: auto; }
+            .kpi-grid { grid-template-columns: 1fr 1fr; }
+            .charger-grid-container { grid-template-columns: 1fr; }
+            .stats-kpi-grid { grid-template-columns: 1fr 1fr; }
+            .chart-container { gap: 2%; }
+            .modal-content { margin: 5% auto; }
+            .info-grid { grid-template-columns: 1fr 1fr; }
+            .speed-grid { grid-template-columns: 1fr; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">SmartCharge</div>
+        <nav>
+            <ul id="nav-list">
+                <li class="nav-item active" data-target="tong-quan"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+                <li class="nav-item" data-target="lich-dat-cho"><i class="fas fa-calendar-alt"></i> Lịch đặt chỗ</li>
+                <li class="nav-item" data-target="quan-ly-tram"><i class="fas fa-charging-station"></i> Quản lý Trụ sạc</li>
+                <li class="nav-item" data-target="phan-tich-ai"><i class="fas fa-brain"></i> Phân tích (AI)</li>
+                <li class="nav-item" data-target="doanh-thu"><i class="fas fa-wallet"></i> Doanh thu</li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+
+        <section id="tong-quan" class="content-section active">
+            <div class="section-header">
+                <h1>Tổng quan Trạm sạc</h1>
+            </div>
+            
+            <div class="kpi-grid">
+                 <div class="card stat-card">
+                    <div class="label"><i class="fas fa-dollar-sign" style="color: var(--color-green);"></i> Total Income</div>
+                    <div class="value">8 342 <small>USD</small></div>
+                </div>
+                 <div class="card stat-card">
+                    <div class="label"><i class="fas fa-bolt" style="color: var(--color-blue);"></i> Consumed</div>
+                    <div class="value">248 <small>kWh</small></div>
+                </div>
+                 <div class="card stat-card">
+                    <div class="label"><i class="fas fa-charging-station" style="color: var(--color-orange);"></i> Charging sessions</div>
+                    <div class="value">248</div>
+                </div>
+                 <div class="card stat-card">
+                    <div class="label"><i class="fas fa-clock" style="color: var(--text-secondary);"></i> Charging time</div>
+                    <div class="value">24<small>h</small> 2<small>m</small></div>
+                </div>
+                <div class="card stat-card co2-card">
+                    <div class="label"><i class="fas fa-leaf"></i> CO2 reduced</div>
+                    <div class="value">24 <small>tons</small></div>
+                </div>
+            </div>
+            
+            <div class="charging-header">
+                <h3>Charging</h3>
+            </div>
+            <div class="charger-grid-container">
+                <div class="charger-card">
+                    <div class="charger-card-header orange"><span>1. CCS 1</span><span>120 kW</span></div>
+                    <div class="charger-card-body">
+                        <div class="car-visual">
+                            <div class="car-fill" style="height: 38%;"></div>
+                            <div class="car-overlay"><h5>Power</h5><h4>120 <small>kW</small></h4><h3>38%</h3></div>
+                        </div>
+                    </div>
+                    <div class="charger-card-footer"><h5>Oliver M. (Hyundai Ioniq 5)</h5><p>10:20 AM - 10:40 AM</p></div>
+                </div>
+                <div class="charger-card">
+                    <div class="charger-card-header green"><span>2. Type 1</span><span>11 kW</span></div>
+                    <div class="charger-card-body">
+                        <div class="available-status"><i class="fas fa-check-circle"></i><h4>Available</h4><p>Next charging will start<br>at 10:50 AM</p></div>
+                    </div>
+                    <div class="charger-card-footer"><h5>-</h5><p>-</p></div>
+                </div>
+                <div class="charger-card">
+                    <div class="charger-card-header orange"><span>3. CCS 1</span><span>60 kW</span></div>
+                    <div class="charger-card-body">
+                         <div class="car-visual">
+                            <div class="car-fill" style="height: 45%;"></div>
+                            <div class="car-overlay"><h5>Power</h5><h4>60 <small>kW</small></h4><h3>45%</h3></div>
+                        </div>
+                    </div>
+                    <div class="charger-card-footer"><h5>Anna A. (Kia EV6)</h5><p>9:30 AM - 10:40 AM</p></div>
+                </div>
+                <div class="charger-card">
+                    <div class="charger-card-header green"><span>4. CCS 1</span><span>120 kW</span></div>
+                    <div class="charger-card-body">
+                        <div class="available-status"><i class="fas fa-check-circle"></i><h4>Available</h4><p>Next charging will start<br>at 11:15 AM</p></div>
+                    </div>
+                    <div class="charger-card-footer"><h5>-</h5><p>-</p></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="lich-dat-cho" class="content-section">
+            <div class="section-header">
+                <h1>Reservations</h1>
+            </div>
+            
+            <div class="schedule-legend">
+                <div class="legend-item"><span class="legend-dot" style="background-color: var(--bg-completed); border: 1px solid var(--color-completed);"></span> Hoàn thành</div>
+                <div class="legend-item"><span class="legend-dot" style="background-color: var(--bg-planned); border: 1px solid var(--color-planned);"></span> Đã đặt (Chờ)</div>
+                <div class="legend-item"><span class="legend-dot" style="background-color: var(--bg-inprogress); border: 1px solid var(--color-inprogress);"></span> Đang sạc</div>
+                <div class="legend-item"><span class="legend-dot" style="background-color: var(--bg-noshow); border: 1px solid var(--color-noshow);"></span> No-Show / Hủy</div>
+            </div>
+            
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <div class="schedule-view">
+                    <div class="schedule-timeline-time">
+                        <div class="time-slot" style="height: 60px;"></div> <div class="time-slot">08:00 AM</div>
+                        <div class="time-slot">09:00 AM</div>
+                        <div class="time-slot">10:00 AM</div>
+                        <div class="time-slot">11:00 AM</div>
+                        <div class="time-slot">12:00 PM</div>
+                        <div class="time-slot">01:00 PM</div>
+                        <div class="time-slot">02:00 PM</div>
+                    </div>
+                    
+                    <div class="schedule-timeline-container">
+                        <div class="schedule-header">
+                            <div class="charger-column-header"><h5>Trụ 01 (DC 60kW)</h5><div class="charger-id">CND321017</div></div>
+                            <div class="charger-column-header"><h5>Trụ 02 (DC 60kW)</h5><div class="charger-id">CND321018</div></div>
+                            <div class="charger-column-header"><h5>Trụ 03 (AC 22kW)</h5><div class="charger-id">CND321019</div></div>
+                        </div>
+                        <div class="schedule-body">
+                            <div class="charger-column">
+                                <div class="booking-block status-completed" style="top: 30px; height: calc(150px - 5px);"
+                                     data-id="200542" data-user="El T." data-time="8:20 AM - 10:00 AM" data-car="Jaguar I-PACE" data-kwh="20,008" data-cost="15.7 USD" data-resid="401415" data-payment="Payment success" data-downtime="1 min / 0,09 USD" data-battery="88%" data-chargeup="+58%" data-peak-power="104 kW" data-avg-power="102.8 kW">
+                                    <div class="booking-car"><i class="fas fa-check-circle"></i> Jaguar I-PACE</div>
+                                    <div class="booking-details">8:20 AM - 10:00 AM</div>
+                                    <div class="booking-details">20,008 kWh</div>
+                                </div>
+                                <div class="booking-block status-planned" style="top: 270px; height: calc(60px - 5px);"
+                                     data-id="200546" data-user="Minh N." data-time="11:00 AM - 11:40 AM" data-car="Hyundai Kona EV" data-kwh="-" data-cost="-" data-resid="401419" data-payment="Payment pending">
+                                    <div class="booking-car"><i class="fas fa-calendar-check"></i> Hyundai Kona EV</div>
+                                    <div class="booking-details">11:00 AM - 11:40 AM</div>
+                                </div>
+                                 <div class="booking-block status-planned" style="top: 450px; height: calc(90px - 5px);"
+                                     data-id="200549" data-user="Long P." data-time="1:00 PM - 2:00 PM" data-car="Kia EV6" data-kwh="-" data-cost="-" data-resid="401422" data-payment="Payment pending">
+                                    <div class="booking-car"><i class="fas fa-calendar-check"></i> Kia EV6</div>
+                                    <div class="booking-details">1:00 PM - 2:00 PM</div>
+                                </div>
+                            </div>
+                            
+                            <div class="charger-column">
+                                <div class="booking-block status-planned" style="top: 90px; height: calc(60px - 5px);"
+                                     data-id="200543" data-user="Nguyễn V.A" data-time="9:00 AM - 9:40 AM" data-car="MG ZS EV" data-kwh="-" data-cost="-" data-resid="401416" data-payment="Payment pending">
+                                    <div class="booking-car"><i class="fas fa-calendar-check"></i> MG ZS EV</div>
+                                    <div class="booking-details">9:00 AM - 9:40 AM</div>
+                                </div>
+                                <div class="booking-block status-charging" style="top: 225px; height: calc(90px - 5px);"
+                                     data-id="200544" data-user="Trần T.B" data-time="10:30 AM - 11:30 AM" data-car="BYD Atto 3" data-kwh="15,5 (Đang sạc)" data-cost="-" data-resid="401417" data-payment="Payment pending" data-battery="60%" data-chargeup="+20% (Đang sạc)" data-peak-power="60 kW" data-avg-power="55 kW" data-downtime="0 min">
+                                    <div class="booking-car"><i class="fas fa-bolt"></i> BYD Atto 3</div>
+                                    <div class="booking-details">10:30 AM - 11:30 AM</div>
+                                </div>
+                                <div class="booking-block status-completed" style="top: 360px; height: calc(45px - 5px);"
+                                     data-id="200547" data-user="Hà P.N" data-time="12:00 PM - 12:30 PM" data-car="Porsche Taycan" data-kwh="18,2 kWh" data-cost="12.5 USD" data-resid="401420" data-payment="Payment success">
+                                    <div class="booking-car"><i class="fas fa-check-circle"></i> Porsche Taycan</div>
+                                    <div class="booking-details">12:00 PM - 12:30 PM</div>
+                                    <div class="booking-details">18,2 kWh</div>
+                                </div>
+                            </div>
+                            
+                            <div class="charger-column">
+                                 <div class="booking-block status-no-show" style="top: 135px; height: calc(45px - 5px);"
+                                     data-id="200545" data-user="Lê V.C" data-time="9:30 AM - 10:00 AM" data-car="Wuling MiniEV" data-kwh="0" data-cost="0" data-resid="401418" data-payment="No charge">
+                                    <div class="booking-car"><i class="fas fa-times-circle"></i> Wuling MiniEV</div>
+                                    <div class="booking-details">9:30 AM - 10:00 AM</div>
+                                </div>
+                                <div class="booking-block status-charging" style="top: 292.5px; height: calc(135px - 5px);"
+                                     data-id="200548" data-user="Chi K.N" data-time="11:15 AM - 12:45 PM" data-car="Omoda E5" data-kwh="10.1 (Đang sạc)" data-cost="-" data-resid="401421" data-payment="Payment pending">
+                                    <div class="booking-car"><i class="fas fa-bolt"></i> Omoda E5</div>
+                                    <div class="booking-details">11:15 AM - 12:45 PM</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="quan-ly-tram" class="content-section">
+             <div class="section-header">
+                <h1>Quản lý Trụ sạc & Giá</h1>
+             </div>
+             <div class="card">
+                <h4 class="card-title">Danh sách Trụ sạc</h4>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Tên Trụ</th><th>Loại sạc</th><th>Trạng thái</th><th>Hành động</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Trụ 01</td><td>DC 60kW</td><td><span class="status-dot online"></span> Online</td><td><button class="btn btn-secondary">Quản lý</button></td></tr>
+                        <tr><td>Trụ 02</td><td>DC 60kW</td><td><span class="status-dot online"></span> Online</td><td><button class="btn btn-secondary">Quản lý</button></td></tr>
+                        <tr><td>Trụ 03</td><td>AC 22kW</td><td><span class="status-dot online"></span> Online</td><td><button class="btn btn-secondary">Quản lý</button></td></tr>
+                        <tr><td>Trụ 04</td><td>AC 22kW</td><td><span class="status-dot offline"></span> Offline</td><td><button class="btn btn-secondary">Quản lý</button></td></tr>
+                    </tbody>
+                </table>
+             </div>
+             <div class="card">
+                <h4 class="card-title">Quản lý giá (Tariffs)</h4>
+                 <table class="data-table">
+                    <thead>
+                        <tr><th>Khung giờ</th><th>Thời gian</th><th>Giá (VNĐ/kWh)</th><th>Hành động</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Giờ Thấp điểm</td><td>00:00 - 07:00</td><td>2.800đ</td><td><button class="btn btn-secondary">Sửa</button></td></tr>
+                        <tr><td>Giờ Bình thường</td><td>07:00 - 17:00</td><td>3.500đ</td><td><button class="btn btn-secondary">Sửa</button></td></tr>
+                        <tr><td>Giờ Cao điểm</td><td>17:00 - 20:00</td><td>4.200đ</td><td><button class="btn btn-secondary">Sửa</button></td></tr>
+                    </tbody>
+                </table>
+             </div>
+        </section>
+        
+        <section id="phan-tich-ai" class="content-section">
+             <div class="section-header">
+                <h1>Phân tích & Thống kê (AI Enhanced)</h1>
+             </div>
+             <div class="stats-kpi-grid card">
+                 <div class="stats-kpi-card">
+                     <div class="label">Money recieved</div>
+                     <div class="value">78 909,4 <small>USD</small></div>
+                     <div class="percent-change green"><i class="fas fa-arrow-up"></i> 150%</div>
+                 </div>
+                 <div class="stats-kpi-card">
+                     <div class="label">Electricity consume</div>
+                     <div class="value">315 637,6 <small>kWh</small></div>
+                     <div class="percent-change green"><i class="fas fa-arrow-up"></i> 120%</div>
+                 </div>
+                 <div class="stats-kpi-card">
+                     <div class="label">Paid electricity</div>
+                     <div class="value">315 637,2 <small>kWh</small></div>
+                     <div class="percent-change red"><i class="fas fa-arrow-down"></i> 10%</div>
+                 </div>
+                 <div class="stats-kpi-card">
+                     <div class="label">Free electricity</div>
+                     <div class="value">0,4 <small>kWh</small></div>
+                     <div class="percent-change green"><i class="fas fa-arrow-up"></i> 10%</div>
+                 </div>
+                 <div class="stats-kpi-card">
+                     <div class="label">Downtime</div>
+                     <div class="value">0,9 <small>USD</small></div>
+                     <div class="percent-change green"><i class="fas fa-arrow-up"></i> 1%</div>
+                 </div>
+             </div>
+             <div class="card">
+                <h4 style="margin-bottom: 20px;">Doanh thu & Tiêu thụ theo thời gian</h4>
+                <div class="chart-container">
+                    <div class="bar-stack"><div class="stack-1" style="height: 20%;"></div><div class="stack-2" style="height: 10%;"></div></div>
+                    <div class="bar-stack"><div class="stack-1" style="height: 25%;"></div><div class="stack-2" style="height: 12%;"></div></div>
+                    <div class="bar-stack"><div class="stack-1" style="height: 30%;"></div><div class="stack-2" style="height: 15%;"></div></div>
+                    <div class="bar-stack"><div class="stack-1" style="height: 35%;"></div><div class="stack-2" style="height: 18%;"></div></div>
+                    <div class="bar-stack"><div class="stack-1" style="height: 40%;"></div><div class="stack-2" style="height: 20%;"></div></div>
+                    <div class="bar-stack"><div class="stack-1" style="height: 45%;"></div><div class="stack-2" style="height: 22%;"></div></div>
+                    <div class="bar-stack"><div class="stack-1" style="height: 50%;"></div><div class="stack-2" style="height: 25%;"></div></div>
+                    <div class="bar-stack"><div class="stack-1" style="height: 55%;"></div><div class="stack-2" style="height: 28%;"></div></div>
+                    <div class="bar-stack"><div class="stack-1" style="height: 60%;"></div><div class="stack-2" style="height: 30%;"></div></div>
+                    <div class="bar-stack"><div class="stack-1" style="height: 70%;"></div><div class="stack-2" style="height: 35%;"></div></div>
+                    <div class="bar-stack"><div class="stack-1" style="height: 75%;"></div><div class="stack-2" style="height: 38%;"></div></div>
+                    <div class="bar-stack"><div class="stack-1" style="height: 80%;"></div><div class="stack-2" style="height: 40%;"></div></div>
+                </div>
+             </div>
+        </section>
+
+        <section id="doanh-thu" class="content-section">
+             <div class="section-header">
+                <h1>Lịch sử Doanh thu</h1>
+             </div>
+              <div class="card">
+                 <h4 class="card-title">Giao dịch gần đây</h4>
+                 <table class="data-table">
+                     <thead>
+                        <tr><th>ID Giao dịch</th><th>Ngày</th><th>User</th><th>Trụ sạc</th><th>Số tiền</th></tr>
+                     </thead>
+                     <tbody>
+                        <tr><td>#12345</td><td>19/10/2025 11:00</td><td>Nguyễn Văn A</td><td>Trụ 01</td><td>60.000đ</td></tr>
+                        <tr><td>#12343</td><td>19/10/2025 10:30</td><td>Phạm Thị D</td><td>Trụ 03</td><td>45.000đ</td></tr>
+                        <tr><td>#12301</td><td>18/10/2025 20:15</td><td>Trần Văn E</td><td>Trụ 01</td><td>55.000đ</td></tr>
+                     </tbody>
+                 </table>
+             </div>
+        </section>
+
+    </main>
+
+    <div id="bookingModal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Reservation</h3><span class="modal-close" id="modalCloseBtn">&times;</span></div>
+            <div class="modal-tabs">
+                <button class="tab-btn active" data-tab="info">Charging info</button>
+                <button class="tab-btn" data-tab="speed">Charging speed</button>
+            </div>
+            <div id="tab-info" class="modal-body tab-content active">
+                <div class="info-grid">
+                    <div class="info-item"><i class="fas fa-user-circle"></i><div class="label">ID / User</div><div class="value" id="modal-user">-</div></div>
+                    <div class="info-item"><i class="fas fa-clock"></i><div class="label">Time</div><div class="value" id="modal-time">-</div></div>
+                    <div class="info-item"><i class="fas fa-hourglass-half"></i><div class="label">Downtime</div><div class="value" id="modal-downtime">-</div></div>
+                    <div class="info-item"><i class="fas fa-battery-three-quarters"></i><div class="label">Battery capacity</div><div class="value" id="modal-battery">-</div></div>
+                    <div class="info-item"><i class="fas fa-car"></i><div class="label">Car</div><div class="value" id="modal-car">-</div></div>
+                    <div class="info-item"><i class="fas fa-bolt"></i><div class="label">Used, kWh</div><div class="value" id="modal-kwh">-</div></div>
+                    <div class="info-item"><i class="fas fa-dollar-sign"></i><div class="label">Received total</div><div class="value" id="modal-cost">-</div></div>
+                     <div class="info-item"><i class="fas fa-battery-full"></i><div class="label">Car was charged up</div><div class="value" id="modal-chargeup">-</div></div>
+                </div>
+            </div>
+            <div id="tab-speed" class="modal-body tab-content">
+                <div class="speed-grid">
+                    <div class="speed-stats">
+                        <div class="info-item"><i class="fas fa-bolt" style="color: var(--color-planned)"></i><div class="label">Peak of power offered</div><div class="value" id="modal-peak-power">-</div></div>
+                        <div class="info-item"><i class="fas fa-bolt" style="color: var(--color-completed)"></i><div class="label">Peak of electricity imports</div><div class="value" id="modal-avg-power">-</div></div>
+                    </div>
+                    <div class="speed-graph-placeholder">[Placeholder cho Biểu đồ Tốc độ sạc]</div>
+                </div>
+            </div>
+            <div class="modal-footer-bar">
+                <div class="res-id">Reservation ID: <span id="modal-resid">-</span></div>
+                <div class="payment-status" id="modal-payment">-</div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- 1. Logic Chuyển Tab (Sidebar) ---
+            const navItems = document.querySelectorAll('.nav-item');
+            const contentSections = document.querySelectorAll('.content-section');
+
+            function showSection(targetId) {
+                contentSections.forEach(section => section.classList.remove('active'));
+                navItems.forEach(item => item.classList.remove('active'));
+                document.getElementById(targetId)?.classList.add('active');
+                document.querySelector(`.nav-item[data-target="${targetId}"]`)?.classList.add('active');
+            }
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    showSection(this.dataset.target);
+                });
+            });
+
+            // Mặc định hiển thị tab 'tong-quan' (Dashboard)
+            showSection('tong-quan'); 
+
+            // --- 2. Logic Mở/Đóng Modal (Popup) ---
+            const modal = document.getElementById('bookingModal');
+            const closeBtn = document.getElementById('modalCloseBtn');
+            const bookingBlocks = document.querySelectorAll('.booking-block');
+            
+            const modalData = {
+                user: document.getElementById('modal-user'),
+                time: document.getElementById('modal-time'),
+                downtime: document.getElementById('modal-downtime'),
+                battery: document.getElementById('modal-battery'),
+                car: document.getElementById('modal-car'),
+                kwh: document.getElementById('modal-kwh'),
+                cost: document.getElementById('modal-cost'),
+                chargeup: document.getElementById('modal-chargeup'),
+                resid: document.getElementById('modal-resid'),
+                payment: document.getElementById('modal-payment'),
+                peakPower: document.getElementById('modal-peak-power'),
+                avgPower: document.getElementById('modal-avg-power')
+            };
+
+            bookingBlocks.forEach(block => {
+                block.addEventListener('click', function() {
+                    const data = this.dataset;
+                    
+                    modalData.user.innerText = `${data.id} / ${data.user}`;
+                    modalData.time.innerText = data.time;
+                    modalData.downtime.innerText = data.downtime || '-'; // Handle missing data
+                    modalData.battery.innerText = data.battery || '-';
+                    modalData.car.innerText = data.car;
+                    modalData.kwh.innerText = data.kwh;
+                    modalData.cost.innerText = data.cost || '-';
+                    modalData.chargeup.innerText = data.chargeup || '-';
+                    modalData.peakPower.innerText = data.peakPower || '-';
+                    modalData.avgPower.innerText = data.avgPower || '-';
+                    modalData.resid.innerText = data.resid;
+                    
+                    if (data.payment === 'Payment success') {
+                        modalData.payment.innerText = 'Payment success';
+                        modalData.payment.className = 'payment-status success';
+                    } else if (data.payment === 'No charge') {
+                         modalData.payment.innerText = 'No charge';
+                         modalData.payment.className = 'payment-status'; // Default style
+                    }
+                    else {
+                        modalData.payment.innerText = data.payment || 'Payment pending';
+                        modalData.payment.className = 'payment-status pending';
+                    }
+                    modal.style.display = 'block';
+                    switchModalTab('info'); // Reset về tab info
+                });
+            });
+
+            closeBtn.onclick = () => modal.style.display = 'none';
+            window.onclick = (event) => {
+                if (event.target == modal) modal.style.display = 'none';
+            }
+
+            // --- 3. Logic Chuyển Tab trong Modal ---
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            function switchModalTab(targetTabId) {
+                tabContents.forEach(content => content.classList.remove('active'));
+                tabBtns.forEach(btn => btn.classList.remove('active'));
+                
+                document.getElementById(`tab-${targetTabId}`).classList.add('active');
+                document.querySelector(`.tab-btn[data-tab="${targetTabId}"]`).classList.add('active');
+            }
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    switchModalTab(this.dataset.tab);
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
