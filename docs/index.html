@@ -49,45 +49,30 @@
             transition: color 0.2s;
         }
         /* Custom styles for range slider */
-        .range-slider {
-            position: relative;
-            height: 40px;
-        }
-        .range-slider input[type=range] {
-            position: absolute;
-            width: 100%;
-            height: 4px;
-            pointer-events: none;
+        input[type=range] {
             -webkit-appearance: none;
             background: transparent;
-            top: 18px;
-        }
-        .range-slider input[type=range]::-webkit-slider-thumb {
-            pointer-events: all;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: #16a34a;
             cursor: pointer;
-            -webkit-appearance: none;
-            border: 4px solid white;
-            box-shadow: 0 0 5px rgba(0,0,0,0.2);
-        }
-        .slider-track {
-            position: absolute;
             width: 100%;
-            height: 4px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            height: 6px;
             background: #e5e7eb;
-            top: 18px;
-            border-radius: 2px;
+            border-radius: 3px;
         }
-        #slider-range {
-            position: absolute;
-            height: 4px;
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            margin-top: -9px; /* (24px - 6px) / 2 */
+            height: 24px;
+            width: 24px;
             background: #16a34a;
-            top: 18px;
-            border-radius: 2px;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
+         input[type=range]:focus::-webkit-slider-thumb {
+            outline: 2px solid #10b981;
+         }
     </style>
 </head>
 <body class="bg-gray-900 flex items-center justify-center min-h-screen">
@@ -110,9 +95,9 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10"/></svg>
                 <span>Lịch sử</span>
             </button>
-            <button id="nav-chatbot" class="flex flex-col items-center justify-center text-gray-500 hover:text-green-600 font-medium text-xs py-1 rounded-lg" onclick="renderChatbotScreen()">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                <span>Hỏi đáp</span>
+            <button id="nav-map" class="flex flex-col items-center justify-center text-gray-500 hover:text-green-600 font-medium text-xs py-1 rounded-lg" onclick="renderMapScreen('home')">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>Bản đồ</span>
             </button>
             <button id="nav-wallet" class="flex flex-col items-center justify-center text-gray-500 hover:text-green-600 font-medium text-xs py-1 rounded-lg" onclick="renderWalletScreen()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
@@ -177,6 +162,25 @@
                 amenities: [{type:'hotel', name: 'JW Marriott', travelTime: 'Trong khuôn viên', open: '24/7', services: 'Lưu trú, Spa, Gym'}, {type:'cafe', name: 'The Lounge', travelTime: 'Trong khách sạn', open: '7:00 - 23:00', services: 'Đồ uống, Tiệc trà'}] 
             },
         };
+
+        const mockAllStations = {
+            "BYD-01": { brand: "BYD", name: "BYD Gia Định", address: "144/1 QL1A, P.Thạnh Xuân, Q. 12, TP. Hồ Chí Minh", chargers: [{ type: 'DC', power: 60, status: 'available' }] },
+            "VFI-01": { brand: "Vinfast", name: "Vinhomes Ocean Park", address: "KĐT Vinhomes Ocean Park, Gia Lâm, Hà Nội", chargers: [{ type: 'DC', power: 150, status: 'available' }] },
+            "EVN-01": { brand: "EVN", name: "EVNConnect 29 An Trạch", address: "29 An Trạch, Cát Linh, Đống Đa, Hà Nội", chargers: [{ type: 'DC', power: 60, status: 'available' }] },
+            "FORD-01": { brand: "Ford", name: "An Đô Ford", address: "168 Phạm Văn Đồng, Xuân Đỉnh, Bắc Từ Liêm, Hà Nội", chargers: [{ type: 'DC', power: 60, status: 'available' }] },
+            "PORSCHE-01": { brand: "Porsche", name: "Porsche Studio Hà Nội", address: "56-58 Nguyễn Trãi, Thượng Đình, Thanh Xuân, Hà Nội", chargers: [{ type: 'DC', power: 180, status: 'busy' }] },
+            "EVOLT-01": { brand: "Evolutions", name: "Evolt 68A Võ Chí Công", address: "68A Võ Chí Công, Xuân La, Tây Hồ, Hà Nội", chargers: [{ type: 'DC', power: 60, status: 'available' }] },
+            "VFI-02": { brand: "Vinfast", name: "Vincom Imperia Hải Phòng", address: "KĐT Vinhomes Imperia, Hồng Bàng, Hải Phòng", chargers: [{ type: 'DC', power: 150, status: 'available' }] },
+            "VFI-03": { brand: "Vinfast", name: "GO! Hạ Long", address: "Cột 5, P. Hồng Hải, TP. Hạ Long, Quảng Ninh", chargers: [{ type: 'DC', power: 60, status: 'available' }] },
+            "VFI-04": { brand: "Vinfast", name: "Vincom Plaza Lý Bôn", address: "460 Lý Bôn, P. Đề Thám, TP. Thái Bình, Thái Bình", chargers: [{ type: 'DC', power: 60, status: 'available' }] },
+            "EVN-02": { brand: "EVN", name: "TTC Hotel - Michelia", address: "04 Pasteur, Xương Huân, Nha Trang, Khánh Hòa", chargers: [{ type: 'DC', power: 60, status: 'available' }] },
+            "PORSCHE-02": { brand: "Porsche", name: "Porsche Centre Sài Gòn", address: "Lô DVTM-2, đường số 7, KCX Tân Thuận, Q.7, TP.HCM", chargers: [{ type: 'DC', power: 180, status: 'available' }] },
+            "VFI-05": { brand: "Vinfast", name: "Landmark 81", address: "720A Điện Biên Phủ, P.22, Q.Bình Thạnh, TP.HCM", chargers: [{ type: 'DC', power: 150, status: 'available' }] },
+            "FORD-02": { brand: "Ford", name: "Gia Định Ford", address: "900 Quốc lộ 1A, P. Thạnh Xuân, Q.12, TP.HCM", chargers: [{ type: 'DC', power: 60, status: 'available' }] },
+            "VFI-06": { brand: "Vinfast", name: "Vincom Plaza Xuân Khánh", address: "209 đường 30/4, P. Xuân Khánh, Q. Ninh Kiều, Cần Thơ", chargers: [{ type: 'DC', power: 60, status: 'available' }] },
+            "VFI-07": { brand: "Vinfast", name: "Hotel Colline Đà Lạt", address: "10 Phan Bội Châu, P.1, TP. Đà Lạt, Lâm Đồng", chargers: [{ type: 'DC', power: 60, status: 'available' }] },
+            "PORS-DN-01": { brand: "Porsche", name: "Porsche Studio Đà Nẵng", address: "356 đường 2/9, Hòa Cường Bắc, Hải Châu, Đà Nẵng", chargers: [{ type: 'DC', power: 120, status: 'busy' }] },
+        };
         
         const mockJourneys = [
             {
@@ -216,9 +220,9 @@
             }
         ];
         
-        mockStations["st_vinh"] = { name: "ECharge Vinh", time: 45, unitPrice: 3200, rating: 4.6, address: "100 Trần Phú, TP. Vinh", amenities: [{type:'food', name: 'Cháo lươn bà Ngọ', travelTime: '5 phút đi bộ'}, {type:'hotel', name: 'Khách sạn Mường Thanh', travelTime: 'Đối diện'}] };
-        mockStations["st_danang"] = { name: "Da Nang PowerUp", time: 50, unitPrice: 3400, rating: 4.9, address: "255 Nguyễn Văn Linh, Đà Nẵng", amenities: [{type:'food', name: 'Mì Quảng Bà Mua', travelTime: '10 phút đi xe'}, {type:'entertainment', name: 'Cầu Rồng', travelTime: '15 phút đi xe'}] };
-        mockStations["st_nhatrang"] = { name: "EVNCharge Nha Trang", time: 40, unitPrice: 3150, rating: 4.7, address: "86 Trần Phú, Nha Trang", amenities: [{type:'cafe', name: 'Sailing Club', travelTime: '5 phút đi bộ'}, {type:'hotel', name: 'InterContinental Nha Trang', travelTime: 'Đối diện'}] };
+        mockStations["st_vinh"] = { name: "ECharge Vinh", time: 45, unitPrice: 3200, rating: 4.6, address: "100 Trần Phú, TP. Vinh", chargers: [{type: 'DC', power: 60}], amenities: [{type:'food', name: 'Cháo lươn bà Ngọ', travelTime: '5 phút đi bộ'}, {type:'hotel', name: 'Khách sạn Mường Thanh', travelTime: 'Đối diện'}] };
+        mockStations["st_danang"] = { name: "Da Nang PowerUp", time: 50, unitPrice: 3400, rating: 4.9, address: "255 Nguyễn Văn Linh, Đà Nẵng", chargers: [{type: 'DC', power: 120}], amenities: [{type:'food', name: 'Mì Quảng Bà Mua', travelTime: '10 phút đi xe'}, {type:'entertainment', name: 'Cầu Rồng', travelTime: '15 phút đi xe'}] };
+        mockStations["st_nhatrang"] = { name: "EVNCharge Nha Trang", time: 40, unitPrice: 3150, rating: 4.7, address: "86 Trần Phú, Nha Trang", chargers: [{type: 'DC', power: 60}], amenities: [{type:'cafe', name: 'Sailing Club', travelTime: '5 phút đi bộ'}, {type:'hotel', name: 'InterContinental Nha Trang', travelTime: 'Đối diện'}] };
         
         const mockFavoriteStations = ['st_nct', 'st_lotte'];
         const mockTravelSuggestions = [
@@ -230,11 +234,13 @@
         // --- APP STATE ---
         const appState = {
             currentScreen: 'home',
+            previousScreen: null,
             history: {
                 activeTab: 'history'
             },
             request: {
                 currentSOC: 35, 
+                desiredSOC: 100,
                 startLocation: "91 Chùa Láng, Hà Nội",
                 destination: "",
             },
@@ -242,7 +248,7 @@
                 journey: null,
                 station: null,
                 selectedChargerId: null,
-                chargeDuration: 0,
+                timeSlot: null,
                 currentStepIndex: -1,
             },
             chargingSession: {
@@ -311,6 +317,68 @@
             renderHomeScreen();
         };
 
+        const renderSearchSetupScreen = () => {
+            bottomNav.classList.add('hidden');
+            
+            mainContent.innerHTML = `
+                <div id="searchSetupScreen" class="screen flex flex-col h-full">
+                    <header class="flex items-center p-4">
+                        <button onclick="renderHomeScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+                        <h2 class="text-xl font-bold text-center flex-1">Tìm trạm sạc</h2>
+                        <div class="w-8"></div>
+                    </header>
+                    <div class="p-4 flex-1 space-y-6">
+                        <div>
+                            <label class="text-sm font-medium text-gray-600">Vị trí hiện tại</label>
+                            <input type="text" value="${appState.request.startLocation}" class="w-full p-3 mt-1 bg-gray-100 border border-gray-200 rounded-lg text-gray-700" readonly>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm font-medium text-gray-600">% Pin hiện tại</label>
+                                <span id="current-soc-display" class="font-bold text-lg text-green-600">${appState.request.currentSOC}%</span>
+                            </div>
+                            <input id="current-soc-slider" type="range" min="0" max="100" value="${appState.request.currentSOC}" class="w-full mt-2" oninput="updateSearchSOC()">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm font-medium text-gray-600">% Pin mong muốn</label>
+                                <span id="desired-soc-display" class="font-bold text-lg text-green-600">${appState.request.desiredSOC}%</span>
+                            </div>
+                            <input id="desired-soc-slider" type="range" min="0" max="100" value="${appState.request.desiredSOC}" class="w-full mt-2" oninput="updateSearchSOC()">
+                        </div>
+                    </div>
+                    <div class="p-4 bg-white mt-auto border-t">
+                        <button class="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700" onclick="renderNearbyStationsScreen()">
+                            Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            `;
+        };
+        
+        const updateSearchSOC = () => {
+            const currentSOCSlider = document.getElementById('current-soc-slider');
+            const desiredSOCSlider = document.getElementById('desired-soc-slider');
+            
+            const currentSOC = parseInt(currentSOCSlider.value);
+            let desiredSOC = parseInt(desiredSOCSlider.value);
+
+            if (desiredSOC <= currentSOC) {
+                desiredSOC = currentSOC + 1;
+                if (desiredSOC > 100) desiredSOC = 100;
+                desiredSOCSlider.value = desiredSOC;
+            }
+            
+            appState.request.currentSOC = currentSOC;
+            appState.request.desiredSOC = desiredSOC;
+            
+            document.getElementById('current-soc-display').textContent = `${currentSOC}%`;
+            document.getElementById('desired-soc-display').textContent = `${desiredSOC}%`;
+        };
+
+
         // --- TEMPLATES / RENDER FUNCTIONS ---
         const renderHomeScreen = () => {
             appState.currentScreen = 'home';
@@ -321,7 +389,7 @@
             const favoriteStationsHTML = mockFavoriteStations.map(stationId => {
                 const station = mockStations[stationId];
                 return `
-                    <div class="bg-white p-3 rounded-xl border flex-shrink-0 w-60 cursor-pointer shadow-sm hover:shadow-md transition-shadow" onclick="renderDetailsScreen('${stationId}')">
+                    <div class="bg-white p-3 rounded-xl border flex-shrink-0 w-60 cursor-pointer shadow-sm hover:shadow-md transition-shadow" onclick="renderDetailsScreen('${stationId}', 'home')">
                         <p class="font-semibold truncate">${station.name}</p>
                         <p class="text-xs text-gray-500 truncate">${station.address}</p>
                     </div>
@@ -356,7 +424,7 @@
 
 
             mainContent.innerHTML = `
-                <div id="homeScreen" class="screen flex flex-col h-full">
+                <div id="homeScreen" class="screen flex flex-col h-full relative">
                     <header class="p-4">
                         <div class="flex items-center justify-between">
                              <h2 class="text-2xl font-bold text-gray-800">Xin chào, ${appState.user.name.split(' ').pop()}!</h2>
@@ -380,7 +448,7 @@
                     <div class="flex-1 overflow-y-auto px-4 space-y-6 pb-6">
                         ${chargingBannerHTML}
                         <div class="space-y-4">
-                           <div class="bg-green-600 text-white p-5 rounded-2xl cursor-pointer hover:bg-green-700 transition-all flex justify-between items-center" onclick="renderNearbyStationsScreen()">
+                           <div class="bg-green-600 text-white p-5 rounded-2xl cursor-pointer hover:bg-green-700 transition-all flex justify-between items-center" onclick="renderSearchSetupScreen()">
                                 <div>
                                     <h3 class="text-xl font-bold">Tìm trạm sạc ngay</h3>
                                     <p class="text-sm opacity-80 mt-1">Khám phá trạm sạc gần bạn.</p>
@@ -798,6 +866,7 @@
         };
         
         const renderNearbyStationsScreen = () => {
+             appState.previousScreen = 'nearby';
              bottomNav.classList.add('hidden');
              appState.nearby.selectedStationId = null;
 
@@ -817,23 +886,20 @@
              mainContent.innerHTML = `
                  <div id="nearbyScreen" class="screen flex flex-col h-full relative">
                       <header class="flex items-center p-4">
-                          <button onclick="renderHomeScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+                          <button onclick="renderSearchSetupScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
                           <h2 class="text-xl font-bold text-center flex-1">Trạm sạc Gần đây</h2>
                           <div class="w-8"></div>
                       </header>
-                      <div class="h-48 bg-gray-300 relative flex items-center justify-center">
-                          <img src="https://placehold.co/400x192/d1d5db/4b5563?text=Bản+đồ+khu+vực+Chùa+Láng" class="w-full h-full object-cover" alt="Bản đồ khu vực Chùa Láng">
-                      </div>
                       <div class="px-4 py-3">
                           <div class="flex gap-2 overflow-x-auto no-scrollbar">
                              ${categoryTabsHTML}
                           </div>
                       </div>
-                      <div id="nearby-station-list" class="flex-1 overflow-y-auto p-4 pt-0 space-y-3">
+                      <div id="nearby-station-list" class="flex-1 overflow-y-auto p-4 pt-0 space-y-3 pb-24">
                           <!-- Station cards will be rendered here -->
                       </div>
-                      <div id="nearby-footer" class="p-4 bg-white mt-auto border-t">
-                          <button id="nearby-booking-btn" class="w-full bg-gray-300 text-white font-bold py-3 rounded-xl transition-all" disabled onclick="renderDetailsScreen(appState.nearby.selectedStationId)">
+                      <div id="nearby-footer" class="p-4 bg-white mt-auto border-t absolute bottom-0 left-0 right-0">
+                          <button id="nearby-booking-btn" class="w-full bg-gray-300 text-white font-bold py-3 rounded-xl transition-all" disabled onclick="renderDetailsScreen(appState.nearby.selectedStationId, 'nearby')">
                               Chọn & Đặt chỗ
                           </button>
                       </div>
@@ -997,7 +1063,7 @@
                          </div>
                      </div>
                       <div class="p-4 bg-white mt-auto border-t flex-shrink-0">
-                          <button class="w-full bg-green-600 text-white font-bold py-3 rounded-xl" onclick="renderDetailsScreen('${stationId}')">Đặt chỗ tại trạm này</button>
+                          <button class="w-full bg-green-600 text-white font-bold py-3 rounded-xl" onclick="renderDetailsScreen('${stationId}', 'nearby')">Đặt chỗ tại trạm này</button>
                      </div>
                  </div>
             `;
@@ -1013,17 +1079,44 @@
         }
 
 
-        const renderDetailsScreen = (stationId) => {
+        const renderDetailsScreen = (stationId, fromScreen = 'nearby') => {
+            appState.previousScreen = fromScreen;
             appState.booking.journey = null;
             appState.booking.currentStepIndex = -1;
-            appState.booking.station = mockStations[stationId];
+            // Combine mock data sources
+            const allStations = {...mockStations, ...mockAllStations};
+            appState.booking.station = allStations[stationId];
             appState.booking.selectedChargerId = null; // Reset selected charger
+            appState.booking.timeSlot = null; // Reset selected time slot
             const station = appState.booking.station;
             
+            if (!station) {
+                console.error("Station not found:", stationId);
+                // Optionally render an error screen
+                mainContent.innerHTML = `<p class="p-4">Lỗi: Không tìm thấy trạm sạc.</p>`;
+                return;
+            }
+
+            const timeSlots = [
+                { time: '14:00', available: true }, { time: '14:30', available: false },
+                { time: '15:00', available: true }, { time: '15:30', available: true },
+                { time: '16:00', available: false }, { time: '16:30', available: true },
+                { time: '17:00', available: true }, { time: '17:30', available: true },
+            ];
+
+            const timeSlotsHTML = timeSlots.map(slot => `
+                <button 
+                    class="time-slot-btn flex-shrink-0 px-4 py-2 border-2 rounded-full font-medium transition-colors ${slot.available ? 'border-gray-300 text-gray-700 hover:border-green-600' : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'}" 
+                    ${!slot.available ? 'disabled' : ''}
+                    onclick="selectTimeSlot(this, '${slot.time}')">
+                    ${slot.time}
+                </button>
+            `).join('');
+
             mainContent.innerHTML = `
                 <div id="detailsScreen" class="screen flex flex-col h-full">
                      <header class="flex items-center p-4">
-                         <button onclick="renderNearbyStationsScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+                         <button onclick="${fromScreen === 'map' ? 'renderMapScreen()' : 'renderNearbyStationsScreen()'}" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
                          <h2 class="text-xl font-bold text-center flex-1">Đặt chỗ sạc</h2>
                           <div class="w-8"></div>
                      </header>
@@ -1031,11 +1124,11 @@
                          <div class="bg-white p-4 rounded-xl border border-gray-200">
                               <h3 class="text-2xl font-bold text-gray-800">${station.name}</h3>
                               <p class="text-gray-500 mt-1">${station.address}</p>
-                              <div class="flex items-center space-x-1 mt-2 text-sm text-yellow-500">
+                              ${station.rating ? `<div class="flex items-center space-x-1 mt-2 text-sm text-yellow-500">
                                   <span>${station.rating}</span>
                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="text-yellow-400"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
                                   <span class="text-gray-400">(125 đánh giá)</span>
-                              </div>
+                              </div>` : ''}
                          </div>
 
                          <div class="mt-6">
@@ -1049,24 +1142,10 @@
                             </div>
                          </div>
 
-                         <div class="mt-6">
-                             <h4 class="font-bold text-lg mb-1">2. Chọn thời gian sạc</h4>
-                             <p class="text-xs text-gray-500 mb-4">Kéo để chọn thời gian bắt đầu và kết thúc.</p>
-                             
-                             <div class="flex justify-between font-semibold">
-                                <div id="start-time-display">08:00</div>
-                                <div id="end-time-display">10:00</div>
-                             </div>
-                             <div class="range-slider">
-                                <div class="slider-track"></div>
-                                <div id="slider-range"></div>
-                                <input type="range" min="0" max="1439" value="480" id="slider-1" oninput="updateTimeSlider()">
-                                <input type="range" min="0" max="1439" value="600" id="slider-2" oninput="updateTimeSlider()">
-                             </div>
-                             
-                             <div id="estimation-box" class="mt-4 bg-gray-100 p-3 rounded-lg text-center hidden">
-                                <p class="text-sm">Thời gian sạc: <span id="duration-display" class="font-bold">2 giờ 0 phút</span></p>
-                                <p class="text-sm">Ước tính: <span id="kwh-display" class="font-bold">0 kWh</span> nạp được (<span id="soc-gain-display" class="font-bold text-green-600">+0%</span>)</p>
+                         <div id="time-slot-section" class="mt-6 hidden">
+                             <h4 class="font-bold text-lg mb-3">2. Chọn khung giờ đến</h4>
+                             <div class="grid grid-cols-4 gap-3">
+                                ${timeSlotsHTML}
                              </div>
                          </div>
                      </div>
@@ -1088,7 +1167,8 @@
                     btn.classList.add('text-gray-600');
                 }
             });
-            const station = mockStations[stationId];
+            const allStations = {...mockStations, ...mockAllStations};
+            const station = allStations[stationId];
             const filteredChargers = station.chargers.filter(c => c.type === type);
             const chargerListHTML = filteredChargers.map(charger => {
                 const isSelected = charger.id === appState.booking.selectedChargerId;
@@ -1117,84 +1197,45 @@
         
         const selectCharger = (stationId, chargerId) => {
             appState.booking.selectedChargerId = chargerId;
-            const station = mockStations[stationId];
+            const allStations = {...mockStations, ...mockAllStations};
+            const station = allStations[stationId];
             const charger = station.chargers.find(c => c.id === chargerId);
             renderChargerList(charger.type, stationId); // Re-render to show selection
-            document.getElementById('estimation-box').classList.remove('hidden');
-            document.getElementById('confirm-booking-btn').disabled = false;
-            document.getElementById('confirm-booking-btn').textContent = 'Xác nhận đặt chỗ';
-            updateTimeSlider(); // Recalculate estimates
+            document.getElementById('time-slot-section').classList.remove('hidden');
+            document.getElementById('confirm-booking-btn').disabled = true;
+            document.getElementById('confirm-booking-btn').textContent = 'Chọn khung giờ';
         };
         
-        function minutesToTime(minutes) {
-            const h = Math.floor(minutes / 60).toString().padStart(2, '0');
-            const m = (minutes % 60).toString().padStart(2, '0');
-            return `${h}:${m}`;
-        }
-
-        function updateTimeSlider() {
-            const slider1 = document.getElementById('slider-1');
-            const slider2 = document.getElementById('slider-2');
-            let val1 = parseInt(slider1.value);
-            let val2 = parseInt(slider2.value);
-
-            if (val1 >= val2) {
-                if (event && event.target.id === 'slider-1') {
-                    slider1.value = val2 - 1;
-                } else {
-                    slider2.value = val1 + 1;
-                }
-                val1 = parseInt(slider1.value);
-                val2 = parseInt(slider2.value);
-            }
-
-            const min = slider1.min;
-            const max = slider1.max;
-            const percent1 = ((val1 - min) / (max - min)) * 100;
-            const percent2 = ((val2 - min) / (max - min)) * 100;
+        const selectTimeSlot = (element, time) => {
+             document.querySelectorAll('.time-slot-btn').forEach(btn => {
+                 btn.classList.remove('bg-green-600', 'text-white', 'border-green-600');
+                 if(!btn.disabled) {
+                    btn.classList.add('bg-transparent', 'text-gray-700', 'border-gray-300');
+                 }
+             });
+             element.classList.add('bg-green-600', 'text-white', 'border-green-600');
+             appState.booking.timeSlot = time;
             
-            const range = document.getElementById('slider-range');
-            range.style.left = percent1 + '%';
-            range.style.width = (percent2 - percent1) + '%';
-
-            document.getElementById('start-time-display').innerText = minutesToTime(val1);
-            document.getElementById('end-time-display').innerText = minutesToTime(val2);
-            
-            const durationMinutes = val2 - val1;
-            const durationHours = Math.floor(durationMinutes / 60);
-            const durationMins = durationMinutes % 60;
-            appState.booking.chargeDuration = durationMinutes;
-            document.getElementById('duration-display').innerText = `${durationHours} giờ ${durationMins} phút`;
-            
-            // Recalculate based on selected charger
-            if (appState.booking.selectedChargerId && appState.booking.station) {
-                const charger = appState.booking.station.chargers.find(c => c.id === appState.booking.selectedChargerId);
-                if (charger) {
-                    const activeCar = appState.user.cars.find(c => c.active);
-                    const kwhPerHour = charger.power;
-                    const kwhCharged = (durationMinutes / 60) * kwhPerHour;
-                    const socGain = (kwhCharged / activeCar.batteryCapacity) * 100;
-                    
-                    document.getElementById('kwh-display').innerText = `${kwhCharged.toFixed(1)} kWh`;
-                    document.getElementById('soc-gain-display').innerText = `+${Math.round(socGain)}%`;
-                }
-            } else {
-                 document.getElementById('kwh-display').innerText = `0 kWh`;
-                 document.getElementById('soc-gain-display').innerText = `+0%`;
-            }
-        }
+             const confirmBtn = document.getElementById('confirm-booking-btn');
+             confirmBtn.disabled = false;
+             confirmBtn.textContent = `Đặt chỗ lúc ${time}`;
+        };
 
 
         const renderConfirmScreen = () => {
              const station = appState.booking.station;
              const charger = station.chargers.find(c => c.id === appState.booking.selectedChargerId);
-             const startTime = minutesToTime(parseInt(document.getElementById('slider-1').value));
-             const duration = appState.booking.chargeDuration;
+             const timeSlot = appState.booking.timeSlot;
+
+             const activeCar = appState.user.cars.find(c => c.active);
+             const neededSOC = appState.request.desiredSOC - appState.request.currentSOC;
+             const neededKwh = (neededSOC / 100) * activeCar.batteryCapacity;
+             const durationMinutes = Math.ceil((neededKwh / charger.power) * 60);
 
              mainContent.innerHTML = `
                  <div id="confirmScreen" class="screen flex flex-col h-full">
                       <header class="flex items-center p-4">
-                          <button onclick="renderDetailsScreen('${Object.keys(mockStations).find(key => mockStations[key] === station)}')" class="p-2 rounded-full hover:bg-gray-100">
+                          <button onclick="renderDetailsScreen('${Object.keys({...mockStations, ...mockAllStations}).find(key => mockStations[key] === station)}', appState.previousScreen)" class="p-2 rounded-full hover:bg-gray-100">
                               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
                           </button>
                           <h2 class="text-xl font-bold text-center flex-1">Xác nhận đặt chỗ</h2>
@@ -1204,12 +1245,12 @@
                           <div class="space-y-3 text-base">
                               <div class="flex justify-between"><span class="text-gray-500">Trạm sạc:</span> <span class="font-semibold text-right">${station.name}</span></div>
                               <div class="flex justify-between"><span class="text-gray-500">Trụ sạc:</span> <span class="font-semibold">${charger.id} (${charger.power}kW - ${charger.connector})</span></div>
-                              <div class="flex justify-between"><span class="text-gray-500">Thời gian đến:</span> <span class="font-semibold">${startTime}</span></div>
-                              <div class="flex justify-between"><span class="text-gray-500">Thời gian sạc:</span> <span class="font-semibold">${Math.floor(duration/60)} giờ ${duration % 60} phút</span></div>
+                              <div class="flex justify-between"><span class="text-gray-500">Thời gian đến:</span> <span class="font-semibold">${timeSlot}</span></div>
+                              <div class="flex justify-between"><span class="text-gray-500">Thời gian sạc (ước tính):</span> <span class="font-semibold">${durationMinutes} phút</span></div>
                           </div>
                           <div class="my-6 border-t border-dashed"></div>
                            <div class="space-y-3 text-base">
-                              <div class="flex justify-between"><span class="text-gray-500">Đơn giá:</span> <span class="font-semibold">${station.unitPrice.toLocaleString('vi-VN')}đ/kWh</span></div>
+                              <div class="flex justify-between"><span class="text-gray-500">Đơn giá:</span> <span class="font-semibold">${(station.unitPrice || 3858).toLocaleString('vi-VN')}đ/kWh</span></div>
                               <div class="flex justify-between"><span class="text-gray-500">Thanh toán qua:</span> <span class="font-semibold">Ví SmartWallet</span></div>
                               <div class="flex justify-between"><span class="text-gray-500">Số dư ví:</span> <span class="font-semibold">250.000đ</span></div>
                           </div>
@@ -1251,11 +1292,14 @@
                 // The interval is already updating the state, we just need to re-render the UI
                 // with the latest state and the interval will pick up the new DOM elements.
             } else { // Start a new session
-                if (stationId) appState.booking.station = mockStations[stationId];
+                if (stationId) {
+                    const allStations = {...mockStations, ...mockAllStations};
+                    appState.booking.station = allStations[stationId];
+                }
                 
                 appState.chargingSession = { 
                     startTime: new Date(),
-                    startSOC: 35, // Always start simulation at 35%
+                    startSOC: appState.request.currentSOC,
                     elapsedSeconds: 0, 
                     energyCharged: 0, 
                     cost: 0 
@@ -1264,22 +1308,25 @@
                 appState.simulationInterval = setInterval(() => {
                     const session = appState.chargingSession;
                     const station = appState.booking.station;
+                    const charger = station.chargers.find(c => c.id === appState.booking.selectedChargerId) || station.chargers[0];
                     const activeCar = appState.user.cars.find(c => c.active);
                     
                     session.elapsedSeconds = (new Date() - session.startTime) / 1000;
                     
-                    const kwhPerHour = 50; // Assume 50kW DC charger
+                    const kwhPerHour = charger.power;
                     const kwhPerSecond = kwhPerHour / 3600;
                     session.energyCharged = session.elapsedSeconds * kwhPerSecond;
                     
                     const socGain = (session.energyCharged / activeCar.batteryCapacity) * 100;
-                    const currentSOC = Math.min(100, session.startSOC + socGain);
-                    session.cost = session.energyCharged * station.unitPrice;
+                    const currentSOC = Math.min(appState.request.desiredSOC, session.startSOC + socGain);
+                    session.cost = session.energyCharged * (station.unitPrice || 3858);
 
                     // Update DOM elements only if they exist (i.e., the screen is visible)
                     const socDisplay = document.getElementById('soc-display');
                     if (socDisplay) {
-                        const secondsRemaining = Math.max(0, ((100 - currentSOC) / 100 * activeCar.batteryCapacity) / kwhPerHour * 3600);
+                        const neededSOC = appState.request.desiredSOC - currentSOC;
+                        const neededKwh = (neededSOC / 100) * activeCar.batteryCapacity;
+                        const secondsRemaining = Math.max(0, (neededKwh / kwhPerHour) * 3600);
                         const minutesLeft = Math.floor(secondsRemaining / 60);
                         const secondsLeft = Math.round(secondsRemaining % 60);
                         
@@ -1290,7 +1337,7 @@
                         document.getElementById('cost-display').textContent = `${Math.floor(session.cost).toLocaleString('vi-VN')}đ`;
                     }
 
-                    if (currentSOC >= 100) {
+                    if (currentSOC >= appState.request.desiredSOC) {
                         stopCharging();
                     }
                 }, 1000);
@@ -1298,9 +1345,10 @@
 
             const station = appState.booking.station;
             const session = appState.chargingSession;
+            const charger = station.chargers.find(c => c.id === appState.booking.selectedChargerId) || station.chargers[0];
             const activeCar = appState.user.cars.find(c => c.active);
             const socGain = (session.energyCharged / activeCar.batteryCapacity) * 100;
-            const currentSOC = Math.min(100, session.startSOC + socGain);
+            const currentSOC = Math.min(appState.request.desiredSOC, session.startSOC + socGain);
 
             const amenitiesHTML = (station.amenities || []).map(item => `
                  <div class="flex items-center justify-between p-2 bg-gray-700 rounded-lg">
@@ -1333,17 +1381,17 @@
                         </div>
                     </div>
                     <div class="bg-gray-800 p-4 rounded-xl space-y-3 mb-4">
-                         <div class="flex justify-between"><span class="text-gray-400">Thời gian còn lại:</span> <span id="time-left-display" class="font-semibold">--:--</span></div>
-                         <div class="flex justify-between"><span class="text-gray-400">Loại sạc:</span> <span class="font-semibold">${station.chargerType || 'DC'}</span></div>
+                         <div class="flex justify-between"><span class="text-gray-400">Thời gian còn lại (đến ${appState.request.desiredSOC}%):</span> <span id="time-left-display" class="font-semibold">--:--</span></div>
+                         <div class="flex justify-between"><span class="text-gray-400">Loại sạc:</span> <span class="font-semibold">${charger.type} - ${charger.power}kW</span></div>
                          <div class="flex justify-between"><span class="text-gray-400">Năng lượng đã nạp:</span> <span id="energy-display" class="font-semibold">${session.energyCharged.toFixed(2)} kWh</span></div>
                          <div class="border-t border-gray-700 my-2"></div>
-                         <div class="flex justify-between"><span class="text-gray-400">Đơn giá:</span> <span class="font-semibold">${station.unitPrice.toLocaleString('vi-VN')}đ/kWh</span></div>
+                         <div class="flex justify-between"><span class="text-gray-400">Đơn giá:</span> <span class="font-semibold">${(station.unitPrice || 0).toLocaleString('vi-VN')}đ/kWh</span></div>
                          <div class="flex justify-between text-lg"><span class="text-gray-300">Chi phí tạm tính:</span> <span id="cost-display" class="font-bold text-green-400">${Math.floor(session.cost).toLocaleString('vi-VN')}đ</span></div>
                     </div>
                     
                     <div class="mb-4">
                         <h4 class="font-bold text-sm text-gray-300 mb-2">Tiện ích xung quanh</h4>
-                        <div class="space-y-2">${amenitiesHTML}</div>
+                        <div class="space-y-2">${amenitiesHTML || ''}</div>
                     </div>
 
                     <button class="w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700" onclick="stopCharging()">
@@ -1479,7 +1527,9 @@
 
         const startSampleCharging = () => {
             const sampleStationId = 'st_cl'; 
-            renderChargingScreen(sampleStationId);
+            appState.booking.station = mockStations[sampleStationId];
+            renderChargingScreen();
+            renderHistoryContent('charging'); // Refresh history tab
         };
 
 
@@ -1640,12 +1690,14 @@
 
         const renderChatbotScreen = () => {
              appState.currentScreen = 'chatbot';
-             updateNavActiveState('chatbot');
-             bottomNav.classList.remove('hidden');
+             appState.previousScreen = 'profile'; // Set where to go back to
+             bottomNav.classList.add('hidden');
              mainContent.innerHTML = `
                  <div id="chatbotScreen" class="screen flex flex-col h-full">
-                      <header class="p-4">
-                          <h2 class="text-2xl font-bold text-gray-800">Trợ lý AI & Hỏi đáp</h2>
+                      <header class="flex items-center p-4">
+                        <button onclick="renderProfileScreen()" class="p-2 rounded-full hover:bg-gray-100"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+                        <h2 class="text-xl font-bold text-center flex-1">Hỏi đáp & Hỗ trợ</h2>
+                        <div class="w-8"></div>
                       </header>
                       <div class="flex-1 overflow-y-auto px-4 space-y-3">
                          <p class="text-sm text-gray-600">Chọn một câu hỏi thường gặp hoặc đặt câu hỏi cho trợ lý AI của chúng tôi.</p>
@@ -1740,6 +1792,7 @@
                            <button class="w-full text-left bg-white p-4 rounded-lg border flex justify-between items-center" onclick="renderMyCarsScreen()"><span>Xe của tôi</span> <span class="text-gray-400">&gt;</span></button>
                            <button class="w-full text-left bg-white p-4 rounded-lg border flex justify-between items-center" onclick="renderMyImpactScreen()"><span>Tác động của tôi</span> <span class="text-gray-400">&gt;</span></button>
                            <button class="w-full text-left bg-white p-4 rounded-lg border flex justify-between items-center" onclick="renderInviteScreen()"><span>Mời bạn bè</span> <span class="text-gray-400">&gt;</span></button>
+                           <button class="w-full text-left bg-white p-4 rounded-lg border flex justify-between items-center" onclick="renderChatbotScreen()"><span>Hỏi đáp & Hỗ trợ</span> <span class="text-gray-400">&gt;</span></button>
                            <button class="w-full text-left bg-white p-4 rounded-lg border text-red-600 font-semibold mt-4">Đăng xuất</button>
                        </div>
                  </div>
@@ -1864,6 +1917,52 @@
             renderMyCarsScreen();
         };
 
+        // --- NEW MAP FUNCTIONS ---
+        const renderMapScreen = (fromScreen) => {
+            appState.currentScreen = 'map';
+            appState.previousScreen = fromScreen;
+            updateNavActiveState('map');
+            bottomNav.classList.remove('hidden');
+
+            const backFunction = appState.previousScreen === 'home' ? 'renderHomeScreen()' : 'renderNearbyStationsScreen()';
+
+            // Generate a list of featured stations to maintain booking flow
+            const featuredStationsHTML = Object.entries(mockAllStations).slice(0, 5).map(([id, station]) => `
+                <div class="bg-white p-3 rounded-lg border flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold">${station.name}</p>
+                        <p class="text-xs text-gray-500">${station.address.split(',').slice(-2).join(', ')}</p>
+                    </div>
+                    <button class="text-sm font-semibold text-green-600" onclick="renderDetailsScreen('${id}', 'map')">Đặt chỗ</button>
+                </div>
+            `).join('');
+
+            mainContent.innerHTML = `
+                <div id="mapScreen" class="screen flex flex-col h-full relative">
+                    <header class="p-4 z-10 bg-white/80 backdrop-blur-sm">
+                        <h2 class="text-2xl font-bold text-gray-800 text-center">Bản đồ trạm sạc</h2>
+                    </header>
+                    <div id="map-container" class="h-1/2 flex-shrink-0 bg-gray-200">
+                        <iframe 
+                            src="https://www.google.com/maps/d/u/0/embed?mid=1g0aGaoWQjuDEJrJmjRVNVsnKxKMq778" 
+                            width="100%" 
+                            height="100%" 
+                            style="border:0;" 
+                            allowfullscreen="" 
+                            loading="lazy">
+                        </iframe>
+                    </div>
+                    <div class="flex-1 p-4 overflow-y-auto no-scrollbar">
+                        <h3 class="font-bold text-lg mb-2">Trạm sạc nổi bật</h3>
+                        <div class="space-y-2">
+                            ${featuredStationsHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+
         // --- INITIALIZE APP ---
         document.addEventListener('DOMContentLoaded', () => {
             renderHomeScreen();
@@ -1871,6 +1970,4 @@
     </script>
 </body>
 </html>
-
-
 
